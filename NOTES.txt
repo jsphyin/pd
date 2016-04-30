@@ -1,0 +1,41 @@
+information on registers - A2 - 4 of the manual
+load/store arch (no memory operations)
+
+r0-7 - unbanked registers
+r8-14 - banked registers
+
+registers are 32 bits
+
+r13 - stack pointer (by convention)
+r14 - link register (hardware)
+r15 - program counter (hardware)    
+
+TODO
+- helper functions (printing and exiting)
+- figure out how to system call
+- figure out how to store variables (globally)
+- use gheith's emulator for ARM
+- figure out .text or whatever
+- makefile
+
+//emulator
+- reading from file
+-
+
+commands for compiler
+ld = ldr
+std = str
+addi = add
+xor = eor
+cmp = cmp (?)
+or = orr
+mr = mov
+mulld = mul (32) or mla (64 + 3rd register)
+        smull (signed) or umull (unsigned)
+mfcr = mrs r#, cpsr
+shifting = lsl + lsr
+push + pop  (supported by arm) (idk actually)
+not = eor with 0xFFFF
+and = and
+bl = bl
+b = b
