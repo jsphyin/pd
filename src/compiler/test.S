@@ -1,14 +1,19 @@
-    .syntax unifed
+    .data
+msg:
+    .ascii "Hello, ARM World!\n"
+    len = . - msg
+
+    .text
     .global main
 main:
-    push {ip, lr}
+    /* write syscall */
+    mov r0, #1
+    ldr r1, =msg
+    ldr r2, =len
+    ldr r7, #4
+    swi #0
 
-    ldr r0, =message
-    bl printf
-
+    /* exit syscall */
     mov r0, #0
-
-    pop {ip, pc}
-
-message:
-    .asciz "Hello, world.\n"
+    mov r7, #1
+    swi #0
