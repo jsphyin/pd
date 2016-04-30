@@ -4,13 +4,13 @@ msg:
     len = . - msg
 
     .text
-    .global main
-main:
+    .global _start
+_start:
     /* write syscall */
     mov r0, #1
     ldr r1, =msg
     ldr r2, =len
-    ldr r7, #4
+    mov r7, #4
     swi #0
 
     /* exit syscall */
