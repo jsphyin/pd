@@ -113,23 +113,28 @@ void evalExpression(Expression *p, Fun *f) {
         case ePLUS:
             printPush(25);
             evalExpression(p->left, f);
+	    printf("    MOV R25, R8\n");
             //printf("    mr 25, 8\n");
             evalExpression(p->right, f);
-            printf("    add 8, 8, 25\n");
+	    printf("    ADD R8, R8, R25\n");
+            //printf("    add 8, 8, 25\n");
             printPop(25);
             break;
         case eMUL:
             printPush(26);
             evalExpression(p->left, f);
-            printf("    mr 26, 8\n");
+	    printf("    MOV R26, R8\n");
+            // printf("    mr 26, 8\n");
             evalExpression(p->right, f);
-            printf("    mulld 8, 8, 26\n");
+	    printf("    MUL R8, R8, R26\n");
+            //printf("    mulld 8, 8, 26\n");
             printPop(26);
             break;
         case eEQ:
             printPush(27);
             evalExpression(p->left, f);
-            printf("    mr 27, 8\n");
+	    printf("    MOV R27, R8\n");
+            //printf("    mr 27, 8\n");
             evalExpression(p->right, f);
             printf("    cmp 0, 8, 27\n");
             printf("    mfcr 16\n");
