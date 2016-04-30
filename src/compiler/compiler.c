@@ -96,21 +96,24 @@ void evalExpression(Expression *p, Fun *f) {
         case eVAR:
             if (findFormal(f->formals, p->varName) != -1) {
                 int index = findFormal(f->formals, p->varName);
-                printf("    ld 8, %d(7)\n", (index + 1) * 8);
+		printf("    LDR R8, [R7, #%d]\n",(index + 1) * 8);
+                //printf("    ld 8, %d(7)\n", (index + 1) * 8);
             }
             else {
-                printf("    ld 8, %s@toc(2)\n", p->varName);
+	        printf("    LDR R8, %s\n", p -> varName);
+                //printf("    ld 8, %s@toc(2)\n", p->varName);
             }
             break;
         case eVAL:
-            printf("    xor 8, 8, 8\n");    // clear r8
+            printf("    EOR R8, R8, R8\n");
+            /*printf("    xor 8, 8, 8\n");    // clear r8
             printf("    oris 8, 8, %" PRIu64 "@h\n", p->val);   // move upper 16 bits
-            printf("    ori 8, 8, %" PRIu64 "@l\n", p->val);    // move lower 16 bits
+            printf("    ori 8, 8, %" PRIu64 "@l\n", p->val);    // move lower 16 bits*/
             break;
         case ePLUS:
             printPush(25);
             evalExpression(p->left, f);
-            printf("    mr 25, 8\n");
+            //printf("    mr 25, 8\n");
             evalExpression(p->right, f);
             printf("    add 8, 8, 25\n");
             printPop(25);
