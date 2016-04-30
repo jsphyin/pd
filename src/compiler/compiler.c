@@ -106,6 +106,7 @@ void evalExpression(Expression *p, Fun *f) {
             break;
         case eVAL:
             printf("    EOR R8, R8, R8\n");
+	    //UNFINISHED
             /*printf("    xor 8, 8, 8\n");    // clear r8
             printf("    oris 8, 8, %" PRIu64 "@h\n", p->val);   // move upper 16 bits
             printf("    ori 8, 8, %" PRIu64 "@l\n", p->val);    // move lower 16 bits*/
@@ -113,32 +114,34 @@ void evalExpression(Expression *p, Fun *f) {
         case ePLUS:
             printPush(25);
             evalExpression(p->left, f);
-	    printf("    MOV R25, R8\n");
+	    printf("    MOV R9, R8\n");
             //printf("    mr 25, 8\n");
             evalExpression(p->right, f);
-	    printf("    ADD R8, R8, R25\n");
+	    printf("    ADD R8, R8, R9\n");
             //printf("    add 8, 8, 25\n");
             printPop(25);
             break;
         case eMUL:
             printPush(26);
             evalExpression(p->left, f);
-	    printf("    MOV R26, R8\n");
+	    printf("    MOV R9, R8\n");
             // printf("    mr 26, 8\n");
             evalExpression(p->right, f);
-	    printf("    MUL R8, R8, R26\n");
+	    printf("    MUL R8, R8, R9\n");
             //printf("    mulld 8, 8, 26\n");
             printPop(26);
             break;
         case eEQ:
             printPush(27);
             evalExpression(p->left, f);
-	    printf("    MOV R27, R8\n");
+	    printf("    MOV R9, R8\n");
             //printf("    mr 27, 8\n");
             evalExpression(p->right, f);
-            printf("    cmp 0, 8, 27\n");
+	    printf("    cmp R8,R9\n");
+	    //UNFINISHED
+            /*printf("    cmp 0, 8, 27\n");
             printf("    mfcr 16\n");
-            printf("    rlwinm 8, 16, 3, 31, 31\n");    // rotate CR 3 bits
+            printf("    rlwinm 8, 16, 3, 31, 31\n");    // rotate CR 3 bits*/
             printPop(27);
             break;
         case eNE:
@@ -207,7 +210,8 @@ void genActuals(Actuals *p, Fun *f) {
 void genAssignment(Statement *p, Fun *f) {
     set(p->assignName); // store varnames in a linked list
     evalExpression(p->assignValue, f);
-    printf("    std 8, %s@toc(2)\n", p->assignName);
+    printf("    STR R8, %s\n", p->assignName);
+    //printf("    std 8, %s@toc(2)\n", p->assignName);
 }
 
 void genPrint(Expression *p, Fun *f) {
