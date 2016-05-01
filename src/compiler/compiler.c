@@ -69,14 +69,16 @@ void genActuals(Actuals *, Fun *);
 
 // GPR push and pop
 void printPush(int reg) {
-    printf("    ADD R13, R13, #-8\n");
-    printf("    STR R%d, [R13]\n", reg);
+    printf("    PUSH {r%d}", reg)
+    //printf("    ADD R13, R13, #-8\n");
+    //printf("    STR R%d, [R13]\n", reg);
     //printf("    stdu %d, -8(1)\n", reg);
 }
 
 void printPop(int reg) {
-    printf("    LDR R%d, [R13]\n", reg);
-    printf("    ADD R13, R13, #8\n");
+    printf("    POP {r%d}", reg)
+    //printf("    LDR R%d, [R13]\n", reg);
+    //printf("    ADD R13, R13, #8\n");
     //printf("    ld %d, 0(1)\n", reg);
     //printf("    addi 1, 1, 8\n");
 }
@@ -94,106 +96,113 @@ void evalExpression(Expression *p, Fun *f) {
 
     switch(p->kind) {
         case eVAR:
-            if (findFormal(f->formals, p->varName) != -1) {
+            if (findFormal(f->formals, p->varName) != -1) { // formals found
                 int index = findFormal(f->formals, p->varName);
-		printf("    LDR R8, [R7, #%d]\n",(index + 1) * 8);
+		        printf("    LDR R10, [R12, $%d]\n",(index + 1) * 8);
                 //printf("    ld 8, %d(7)\n", (index + 1) * 8);
-            }
-            else {
-	        printf("    LDR R8, %s\n", p -> varName);
+            } else {
+	            printf("    LDR R10, =%s\n", p -> varName);
                 //printf("    ld 8, %s@toc(2)\n", p->varName);
             }
             break;
         case eVAL:
-            printf("    EOR R8, R8, R8\n");
+            printf("    EOR R10, R10, R10\n");
+            printf("    ");
 	    //UNFINISHED
             /*printf("    xor 8, 8, 8\n");    // clear r8
             printf("    oris 8, 8, %" PRIu64 "@h\n", p->val);   // move upper 16 bits
             printf("    ori 8, 8, %" PRIu64 "@l\n", p->val);    // move lower 16 bits*/
             break;
         case ePLUS:
-            printPush(25);
             evalExpression(p->left, f);
-	    printf("    MOV R9, R8\n");
+            printPush(9);
+	        printf("    MOV R9, R10\n");
             //printf("    mr 25, 8\n");
             evalExpression(p->right, f);
-	    printf("    ADD R8, R8, R9\n");
+	        printf("    ADD R10, R10, R9\n");
             //printf("    add 8, 8, 25\n");
-            printPop(25);
+            printPop(9);
             break;
         case eMUL:
-            printPush(26);
             evalExpression(p->left, f);
-	    printf("    MOV R9, R8\n");
+            printPush(9);
+	        printf("    MOV R9, R10\n");
             // printf("    mr 26, 8\n");
             evalExpression(p->right, f);
-	    printf("    MUL R8, R8, R9\n");
+	        printf("    MUL R10, R10, R9\n");
             //printf("    mulld 8, 8, 26\n");
-            printPop(26);
+            printPop(9);
             break;
         case eEQ:
-            printPush(27);
             evalExpression(p->left, f);
-	    printf("    MOV R9, R8\n");
+            printPush(9);
+	        printf("    MOV R9, R10\n");
             //printf("    mr 27, 8\n");
             evalExpression(p->right, f);
-	    printf("    cmp R8,R9\n");
-	    //UNFINISHED
+	        printf("    CMP R10, R9\n");
+            printf("    MOVEQ R10, $1\n");
+            printf("    MOVNE R10, $0\n");
             /*printf("    cmp 0, 8, 27\n");
             printf("    mfcr 16\n");
             printf("    rlwinm 8, 16, 3, 31, 31\n");    // rotate CR 3 bits*/
-            printPop(27);
+            printPop(9);
             break;
         case eNE:
-            printPush(28);
             evalExpression(p->left, f);
-            printf("    mr 28, 8\n");
+            printPush(9)
+            printf("    MOV R9, R10\n");
             evalExpression(p->right, f);
-            printf("    cmp 0, 8, 28\n");
-            printf("    mfcr 17\n");
+            printf("    CMP R9, R10\n");
+            printf("    MOVNE R10, $1\n");
+            printf("    MOVEQ R10, $0\n");
+            /*printf("    mfcr 17\n");
             printf("    rlwinm 17, 17, 3, 0, 31\n");    // rotate CR 3 bits
             printf("    not 17, 17\n");   // flip bits
-            printf("    andi. 8, 17, 1\n");    // and bits with 1
-            printPop(28);
+            printf("    andi. 8, 17, 1\n");    // and bits with 1*/
+            printPop(9);
             break;
         case eLT:
-            printPush(29);
             evalExpression(p->left, f);
-            printf("    mr 29, 8\n");
+            printPush(9);
+            printf("    MOV R9, R10\n");
             evalExpression(p->right, f);
-            printf("    cmp 0, 8, 29\n");
-            printf("    mfcr 18\n");
-            printf("    rlwinm 8, 18, 2, 31, 31\n");    // rotate CR 2 bits
-            printPop(29);
+            printf("    CMP R9, R10\n");
+            printf("    MOVLT R10, $1\n");
+            printf("    MOVGE R10, $0\n");
+            /*printf("    mfcr 18\n");
+            printf("    rlwinm 8, 18, 2, 31, 31\n");    // rotate CR 2 bits */
+            printPop(9);
             break;
         case eGT:
-            printPush(30);
             evalExpression(p->left, f);
-            printf("    mr 30, 8\n");
+            printPush(9);
+            printf("    MOV R9, R10\n");
             evalExpression(p->right, f);
-            printf("    cmp 0, 8, 30\n");
-            printf("    mfcr 19\n");
-            printf("    rlwinm 8, 19, 1, 31, 31\n");    // rotate CR 1 bit
-            printPop(30);
+            printf("    CMP R9, R10\n");
+            printf("    MOVGT R10, $1\n");
+            printf("    MOVLE R10 $0\n");
+            /*printf("    mfcr 19\n");
+            printf("    rlwinm 8, 19, 1, 31, 31\n");    // rotate CR 1 bit */
+            printPop(9);
             break;
         case eCALL:
-            printf("    mflr 6\n"); // save link 
-            printPush(6);
+            printPush(14)   // save link register
+            /*printf("    mflr 6\n"); // save link 
+            printPush(6);*/
             genActuals(p->callActuals, f);
-            printPush(7);   // create stack frame/save base ptr
-            printf("    mr 7, 1\n");
-            if (!strcmp(p->callName, "main"))
-            {
-                printf("    bl %s\n", p->callName);
+            printPush(12);   // create stack frame/save base ptr
+            printf("    MOV R12, R13\n");
+            /*printPush(7);   // create stack frame/save base ptr
+            printf("    mr 7, 1\n"); */
+            if (!strcmp(p->callName, "_start")) {
+                printf("    BL _%s\n", p->callName);
+            } else {
+                printf("    BL %s\n", p->callName);
             }
-            else 
-            {
-                printf("    bl %s_\n", p->callName);
-            }
-            printPop(7);
-            printf("    addi 1, 1, %d\n", offset * 8);  // restore stack ptr
-            printPop(6);
-            printf("    mtlr 6\n"); // restore link
+            printPop(12);
+            printf("    ADD R13, R13, $%d\n", offset * 8);  // restore stack ptr
+            printPop(14);   // restore link
+            //printf("    mtlr 6\n"); // restore link
             break;
     }
 }
@@ -204,13 +213,16 @@ void genActuals(Actuals *p, Fun *f) {
     }
     genActuals(p->rest, f);
     evalExpression(p->first, f);
-    printPush(8);   // push args onto stack in reverse order
+    printPush(12);   // push args onto stack in reverse order
 }
 
 void genAssignment(Statement *p, Fun *f) {
     set(p->assignName); // store varnames in a linked list
     evalExpression(p->assignValue, f);
-    printf("    STR R8, %s\n", p->assignName);
+    //UNFINISHED 
+    printPush(9);
+    printf("    LDR R9, =%s\n", p->assignName);
+    printf("    str r10, %s\n", p->assignName);
     //printf("    std 8, %s@toc(2)\n", p->assignName);
 }
 
@@ -228,7 +240,7 @@ void genIf(Statement *p, Fun *f) {
     int count = ++counter;
     evalExpression(p->ifCondition, f);
     printf("if%d:\n", count);
-    printf("    cmpi 0, 8, 0\n");
+    
     printf("    beq else%d\n", count);
     genStatement(p->ifThen, f);
     printf("    b done%d\n", count);

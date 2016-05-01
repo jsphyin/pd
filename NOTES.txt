@@ -6,6 +6,8 @@ r8-14 - banked registers
 
 registers are 32 bits
 
+r10 - return values (also because I said so)
+r12 - base pointer (because I said so)
 r13 - stack pointer (by convention)
 r14 - link register (hardware)
 r15 - program counter (hardware)    

@@ -2,7 +2,7 @@
 _start:
     /*mov r0, #1234*/
     /*bl print_decimal*/
-    mov r0, #1
+    //mov r1, #65
     bl putchar
 
     /* exit syscall */
@@ -57,16 +57,19 @@ done:
     mov r0, #'\n'
     b putchar
 
+/* argument is in r0 */
 putchar:
-    stmfd sp!, {r0, r1, r2, r7}
-
-    mov r1, r0
+    /*stmfd sp!, {r0, r1, r2, r7}*/
+     
+    /*ldr r1, =string2*/
     mov r0, #1
-    mov r2, #1
+    mov r2, #12
     mov r7, #4
     swi #0
 
-    ldmfd sp!, {r0, r1, r2, r7}
+    /*ldmfd sp!, {r0, r1, r2, r7}*/
     bx lr
     
     .data
+string: .asciz "Hello World\n"
+string2: .asciz 0

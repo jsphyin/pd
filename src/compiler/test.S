@@ -1,37 +1,29 @@
-    .data
-msg:
-    .ascii "Hello, ARM World!\n"
-    len = . - msg
-string: .asciz "The number is: %d\n"
-
-    .extern printf
-
     .text
     .global _start
 _start:
-    /* write syscall 
-    mov r0, #1
-    ldr r1, =msg
-    ldr r2, =len
-    mov r7, #4
-    swi #0 */
-
-    /* testing print/global variables */
-    mov r0, #1
-    mov r3, #123
-
-    ldr r1, =msg
-    /*str r3, [r1]*/
-    ldr r2, =len
-    mov r7, #4
-    swi #0
-
-    /* printf ? */
-    ldr r0, =string
-    mov r1, #1024
-    bl printf
-
+    bl putchar
+    /*push {r7, lr}*/
     /* exit syscall */
-    mov r0, #0
-    mov r7, #1
-    swi #0
+    mov r0, $0
+    mov r7, $1
+    swi $0
+
+putchar:
+    mov r0, $1
+    ldr r1, =string1
+    //mov r1, $66
+    mov r2, $12
+    mov r7, $4
+    svc $0
+    
+    bx lr
+    /*pop {r7, pc}*/
+    
+    /* exit syscall */
+    /*mov r0, $0
+    mov r7, $1
+    swi $0*/
+
+    .data
+string: .asciz "Hello World\n"
+string1: .asciz "a\n"
