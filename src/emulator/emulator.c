@@ -1,1 +1,3 @@
-//emulator
+int main() {
+    return 0;
+}

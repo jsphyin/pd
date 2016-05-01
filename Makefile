@@ -6,11 +6,13 @@ RESULTS=$(patsubst %.fun,%.result,$(TESTS))
 
 #CFILES=$(sort $(wildcard *.c))
 
-PPC=/u/gheith/public/ppc64-linux/bin
-AS=${PPC}/as
-LD=${PPC}/ld
+#PPC=/u/gheith/public/ppc64-linux/bin
+#AS=${PPC}/as
+#LD=${PPC}/ld
 
-UTILS = fun2ppc emulator
+CC = arm-linux-gnueabi-as
+
+UTILS = compiler emulator
 
 .SECONDARY:
 
@@ -21,29 +23,29 @@ OFILES=$(subst .c,.o,$(CFILES))
 
 all : ${UTILS}
 
-fun2ppc_CFILES=$(wildcard src/fun2ppc/*.c)
+compiler_CFILES=$(wildcard src/compiler/*.c)
 emulator_CFILES=$(wildcard src/emulator/*.c)
 
-fun2ppc : Makefile ${fun2ppc_CFILES}
-	gcc $(CFLAGS) -o $@ ${fun2ppc_CFILES}
+compiler : Makefile ${compiler_CFILES} 
+	gcc $(CFLAGS) -o $@ ${compiler_CFILES}
 	
 emulator : Makefile ${emulator_CFILES}
 	gcc $(CFLAGS) -o $@ ${emulator_CFILES}
 	
 %.o : %.S all Makefile
-	($(AS) -o $*.o $*.S) || touch $@
+	($(CC) -o $*.o $*.S) || touch $@
 
-%.S : fun2ppc %.fun
+%.S : compiler %.fun
 	@echo "========== $* =========="
-	(./fun2ppc < $*.fun > $*.S) || touch $@
+	(./compiler < $*.fun > $*.S) || touch $@
 
 progs : $(PROGS)
 
-ppc.o : ppc.asm
-	($(AS) -o $*.o $*.asm) || touch $@
+#ppc.o : ppc.asm
+#	($(AS) -o $*.o $*.asm) || touch $@
 
-$(PROGS) : % : %.o ppc.o
-	($(LD) -e entry -o $@ $*.o ppc.o) || touch $@
+$(PROGS) : % : %.o
+	(arm-linux-gnueabi-ld -e entry -o $@ $*.o) || touch $@
 
 outs : $(OUTS)
 
@@ -69,9 +71,9 @@ clean :
 	rm -f $(UTILS)
 	rm -f *.S
 	rm -f *.out
-	rm -f *.d src/emulator/*.d src/fun2ppc/*.d
-	rm -f *.o src/emulator/*.o src/fun2ppc/*.o
-	rm -f emulator fun2ppc
+	rm -f *.d src/emulator/*.d src/compiler/*.d
+	rm -f *.o src/emulator/*.o src/compiler/*.o
+	rm -f emulator compiler
 	rm -f *.diff
 
 -include *.d
