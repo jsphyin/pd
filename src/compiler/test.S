@@ -2,7 +2,9 @@
 msg:
     .ascii "Hello, ARM World!\n"
     len = . - msg
-string: .asciz "The number is: $d\n"
+string: .asciz "The number is: %d\n"
+
+    .extern printf
 
     .text
     .global _start
@@ -24,10 +26,10 @@ _start:
     mov r7, #4
     swi #0
 
-    /* printf ? 
+    /* printf ? */
     ldr r0, =string
     mov r1, #1024
-    bl printf */
+    bl printf
 
     /* exit syscall */
     mov r0, #0
