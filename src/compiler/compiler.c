@@ -219,16 +219,15 @@ void genActuals(Actuals *p, Fun *f) {
 void genAssignment(Statement *p, Fun *f) {
     set(p->assignName); // store varnames in a linked list
     evalExpression(p->assignValue, f);
-    //UNFINISHED 
     printPush(9);
     printf("    LDR R9, =%s\n", p->assignName);
-    printf("    str r10, %s\n", p->assignName);
+    printf("    STR R10, [R9]\n");
     //printf("    std 8, %s@toc(2)\n", p->assignName);
 }
 
 void genPrint(Expression *p, Fun *f) {
     evalExpression(p, f);
-    printf("    mr 15, 8\n");
+    printf("    mr 15, 8\n");   // provide arguments
     printf("    mflr 24\n");
     printPush(24);  // push lr onto the stack
     printf("    bl print\n");
