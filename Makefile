@@ -4,31 +4,38 @@ OUTS=$(patsubst %.fun,%.out,$(TESTS))
 DIFFS=$(patsubst %.fun,%.diff,$(TESTS))
 RESULTS=$(patsubst %.fun,%.result,$(TESTS))
 
-CFILES=$(sort $(wildcard *.c))
+#CFILES=$(sort $(wildcard *.c))
 
 PPC=/u/gheith/public/ppc64-linux/bin
 AS=${PPC}/as
 LD=${PPC}/ld
 
+UTILS = fun2ppc emulator
+
 .SECONDARY:
 
 .PROCIOUS : %.o %.S %.out
 
-CFLAGS=-g -std=gnu99 -O0 -Werror -Wall
+CFLAGS=-MD -g -std=gnu99 -O0 -Werror -Wall
 OFILES=$(subst .c,.o,$(CFILES))
 
-p5 : $(OFILES) Makefile
-	gcc $(CFLAGS) -o p5 $(OFILES)
+all : ${UTILS}
 
-%.o : %.c Makefile
-	gcc $(CFLAGS) -MD -c $*.c
+fun2ppc_CFILES=$(wildcard src/fun2ppc/*.c)
+emulator_CFILES=$(wildcard src/emulator/*.c)
 
-%.o : %.S Makefile
+fun2ppc : Makefile ${fun2ppc_CFILES}
+	gcc $(CFLAGS) -o $@ ${fun2ppc_CFILES}
+	
+emulator : Makefile ${emulator_CFILES}
+	gcc $(CFLAGS) -o $@ ${emulator_CFILES}
+	
+%.o : %.S all Makefile
 	($(AS) -o $*.o $*.S) || touch $@
 
-%.S : %.fun p5
+%.S : fun2ppc %.fun
 	@echo "========== $* =========="
-	(./p5 < $*.fun > $*.S) || touch $@
+	(./fun2ppc < $*.fun > $*.S) || touch $@
 
 progs : $(PROGS)
 
@@ -40,30 +47,31 @@ $(PROGS) : % : %.o ppc.o
 
 outs : $(OUTS)
 
-$(OUTS) : %.out : %
-	(qemu-ppc64 $* > $*.out) || touch $@
+$(OUTS) : %.out : emulator Makefile %
+	(./emulator $* > $*.out) || touch $@
 
 diffs : $(DIFFS)
 
 %.ok:
 	touch $@
 
-$(DIFFS) : %.diff : Makefile %.out %.ok
+$(DIFFS) : %.diff : all Makefile %.out %.ok
 	@(((diff -b $*.ok $*.out > /dev/null 2>&1) && (echo "===> $* ... pass")) || (echo "===> $* ... fail" ; echo "----- test -----"; cat $*.fun; echo "----- expected ------"; cat $*.ok ; echo "----- found -----"; cat $*.out)) > $*.diff 2>&1
 
-$(RESULTS) : %.result : Makefile %.diff
+$(RESULTS) : %.result : all Makefile %.diff
 	@cat $*.diff
 
-test : Makefile $(DIFFS)
+test : all Makefile $(DIFFS)
 	@cat $(DIFFS)
 
 clean :
 	rm -f $(PROGS)
+	rm -f $(UTILS)
 	rm -f *.S
 	rm -f *.out
-	rm -f *.d
-	rm -f *.o
-	rm -f p5
+	rm -f *.d src/emulator/*.d src/fun2ppc/*.d
+	rm -f *.o src/emulator/*.o src/fun2ppc/*.o
+	rm -f emulator fun2ppc
 	rm -f *.diff
 
 -include *.d
