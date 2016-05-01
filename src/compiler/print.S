@@ -67,6 +67,6 @@ putchar:
     swi #0
 
     ldmfd sp!, {r0, r1, r2, r7}
-    mov pc, lr
+    bx lr
     
     .data
