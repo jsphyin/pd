@@ -106,7 +106,7 @@ void evalExpression(Expression *p, Fun *f) {
             }
             break;
         case eVAL:
-            printf("    EOR R10, R10, R10\n");
+            //printf("    EOR R10, R10, R10\n");
             printf("    MOV R10, $%" PRIu64 "\n", p->val);
             //printf("    ");
 	    //UNFINISHED
