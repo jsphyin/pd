@@ -1,6 +1,6 @@
     .global _start
 _start:
-    mov r0, #1232
+    mov r0, #1234
     bl print_decimal
     //mov r1, #65
 
