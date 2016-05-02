@@ -409,14 +409,14 @@ int main(int argc, char *argv[]) {
         head = head->next;
     }
     printf("string: .asciz \"\"\n");
-    printf("stackBottom:\n");
+    //printf("stackBottom:\n");
 
     /*printf(".section \".opd\", \"aw\"\n"); */
-    printf("    .global entry\n");
-    printf("entry :\n");
+    //printf("    .global entry\n");
+    //printf("entry :\n");
     //printf("    .word _start\n");
     //printf("    .quad .TOC.@tocbase\n");
-    printf("    .quad 0\n");
+    //printf("    .quad 0\n");
 
     return 0;
 }
