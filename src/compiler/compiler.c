@@ -69,14 +69,14 @@ void genActuals(Actuals *, Fun *);
 
 // GPR push and pop
 void printPush(int reg) {
-    printf("    PUSH {r%d}", reg)
+    printf("    PUSH {r%d}\n", reg);
     //printf("    ADD R13, R13, #-8\n");
     //printf("    STR R%d, [R13]\n", reg);
     //printf("    stdu %d, -8(1)\n", reg);
 }
 
 void printPop(int reg) {
-    printf("    POP {r%d}", reg)
+    printf("    POP {r%d}\n", reg);
     //printf("    LDR R%d, [R13]\n", reg);
     //printf("    ADD R13, R13, #8\n");
     //printf("    ld %d, 0(1)\n", reg);
@@ -107,7 +107,7 @@ void evalExpression(Expression *p, Fun *f) {
             break;
         case eVAL:
             printf("    EOR R10, R10, R10\n");
-            printf("    ");
+            //printf("    ");
 	    //UNFINISHED
             /*printf("    xor 8, 8, 8\n");    // clear r8
             printf("    oris 8, 8, %" PRIu64 "@h\n", p->val);   // move upper 16 bits
@@ -149,7 +149,7 @@ void evalExpression(Expression *p, Fun *f) {
             break;
         case eNE:
             evalExpression(p->left, f);
-            printPush(9)
+            printPush(9);
             printf("    MOV R9, R10\n");
             evalExpression(p->right, f);
             printf("    CMP R9, R10\n");
@@ -186,7 +186,7 @@ void evalExpression(Expression *p, Fun *f) {
             printPop(9);
             break;
         case eCALL:
-            printPush(14)   // save link register
+            printPush(14);  // save link register
             /*printf("    mflr 6\n"); // save link 
             printPush(6);*/
             genActuals(p->callActuals, f);
