@@ -1,9 +1,8 @@
     .global _start
 _start:
-    /*mov r0, #1234*/
-    /*bl print_decimal*/
+    mov r0, #1232
+    bl print_decimal
     //mov r1, #65
-    bl putchar
 
     /* exit syscall */
     mov r0, #0
@@ -60,10 +59,11 @@ done:
 /* argument is in r0 */
 putchar:
     /*stmfd sp!, {r0, r1, r2, r7}*/
-     
-    /*ldr r1, =string2*/
+
+    ldr r1, =string
+    str r0, [r1]
     mov r0, #1
-    mov r2, #12
+    mov r2, #1
     mov r7, #4
     swi #0
 
@@ -71,5 +71,5 @@ putchar:
     bx lr
     
     .data
-string: .asciz "Hello World\n"
-string2: .asciz 0
+string: .asciz ""
+string2: .asciz ""
