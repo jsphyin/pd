@@ -239,10 +239,10 @@ void genIf(Statement *p, Fun *f) {
     int count = ++counter;
     evalExpression(p->ifCondition, f);
     printf("if%d:\n", count);
-    
-    printf("    beq else%d\n", count);
+    printf("    CMP R10, $0\n")
+    printf("    BEQ else%d\n", count);
     genStatement(p->ifThen, f);
-    printf("    b done%d\n", count);
+    printf("    B done%d\n", count);
     printf("else%d:\n", count);
     genStatement(p->ifElse, f);
     printf("done%d:\n", count);
@@ -252,10 +252,10 @@ void genWhile(Statement *p, Fun *f) {
     int count = ++counter;
     printf("while%d:\n", count);
     evalExpression(p->whileCondition, f);
-    printf("    cmpi 0, 8, 0\n");
-    printf("    beq done%d\n", count);
+    printf("    CMP R10, $0\n");
+    printf("    BEQ done%d\n", count);
     genStatement(p->whileBody, f);
-    printf("    b while%d\n", count);
+    printf("    B while%d\n", count);
     printf("done%d:\n", count);
 }
 
@@ -269,10 +269,10 @@ void genBlock(Block *p, Fun *f) {
 
 void genReturn(Statement *p, Fun *f) {
     evalExpression(p->returnValue, f);  // return value is in r8
-    if (!strcmp(f->name, "main")) {
-        printf("    b exit\n");
+    if (!strcmp(f->name, "_start")) {
+        printf("    B exit\n");
     } else {
-        printf("    blr\n");
+        printf("    BX lr\n");
     }
 }
 
@@ -311,16 +311,16 @@ void genFun(Fun *p)
         return;
     }
     
-    if (strcmp(p->name, "main") == 0) {
+    if (strcmp(p->name, "_start") == 0) {
         printf("    .global %s\n", p->name);
         printf("%s:\n", p->name);
         genStatement(p->body, p);
-        printf("    b exit\n"); // special case for main
+        printf("    B exit\n"); // special case for main
     } else {
-        printf("    .global %s_\n", p->name);
-        printf("%s_:\n", p->name);
+        printf("    .global %s\n", p->name);
+        printf("%s:\n", p->name);
         genStatement(p->body, p);
-        printf("    blr\n");
+        printf("    BX lr\n");
     }
 }
 
