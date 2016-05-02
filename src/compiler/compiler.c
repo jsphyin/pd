@@ -280,7 +280,7 @@ void genBlock(Block *p, Fun *f) {
 
 void genReturn(Statement *p, Fun *f) {
     evalExpression(p->returnValue, f);  // return value is in r8
-    if (!strcmp(f->name, "_start")) {
+    if (!strcmp(f->name, "main")) {
         printf("    B exit\n");
     } else {
         printf("    BX lr\n");
@@ -320,9 +320,9 @@ void genFun(Fun *p) {
         return;
     }
     
-    if (strcmp(p->name, "_start") == 0) {
-        printf("    .global %s\n", p->name);
-        printf("%s:\n", p->name);
+    if (strcmp(p->name, "main") == 0) {
+        printf("    .global _start\n");
+        printf("_start:\n");
         genStatement(p->body, p);
         printf("    B exit\n"); // special case for main
     } else {
