@@ -107,6 +107,7 @@ void evalExpression(Expression *p, Fun *f) {
             break;
         case eVAL:
             printf("    EOR R10, R10, R10\n");
+            printf("    MOV R10, $%" PRIu64 "\n", p->val);
             //printf("    ");
 	    //UNFINISHED
             /*printf("    xor 8, 8, 8\n");    // clear r8
@@ -222,24 +223,31 @@ void genAssignment(Statement *p, Fun *f) {
     printPush(9);
     printf("    LDR R9, =%s\n", p->assignName);
     printf("    STR R10, [R9]\n");
+    printPop(9);
     //printf("    std 8, %s@toc(2)\n", p->assignName);
 }
 
 void genPrint(Expression *p, Fun *f) {
     evalExpression(p, f);
-    printf("    mr 15, 8\n");   // provide arguments
+    printPush(0);
+    printf("    MOV R0, R15\n");    //provide arguments
+    printPush(14);  // push lr
+    printf("    BL print_decimal\n");
+    printPop(14);
+    printPop(0);
+    /*printf("    mr 15, 8\n");   // provide arguments
     printf("    mflr 24\n");
     printPush(24);  // push lr onto the stack
     printf("    bl print\n");
     printPop(24);   // pop lr
-    printf("    mtlr 24\n");
+    printf("    mtlr 24\n"); */
 }
 
 void genIf(Statement *p, Fun *f) {
     int count = ++counter;
     evalExpression(p->ifCondition, f);
     printf("if%d:\n", count);
-    printf("    CMP R10, $0\n")
+    printf("    CMP R10, $0\n");
     printf("    BEQ else%d\n", count);
     genStatement(p->ifThen, f);
     printf("    B done%d\n", count);
@@ -276,8 +284,7 @@ void genReturn(Statement *p, Fun *f) {
     }
 }
 
-void genStatement(Statement *p, Fun *f)
-{
+void genStatement(Statement *p, Fun *f) {
     if (p == NULL) {
         return;
     }
@@ -305,8 +312,7 @@ void genStatement(Statement *p, Fun *f)
     }
 }
 
-void genFun(Fun *p)
-{
+void genFun(Fun *p) {
     if (p == NULL) {
         return;
     }
@@ -324,8 +330,7 @@ void genFun(Fun *p)
     }
 }
 
-void genFuns(Funs *p)
-{
+void genFuns(Funs *p) {
     if (p == NULL) {
         return;
     }
@@ -333,25 +338,81 @@ void genFuns(Funs *p)
     genFuns(p->rest);
 }
 
+void genPrintDecimal() {
+    printf("print_decimal:\n");
+    printf("    STMFD SP!, {R4, R5, LR}\n\n");
+    printf("    CMP R0, $0\n");
+    printf("    MOVEQ R0, $'0'\n");
+    printf("    BLEQ putchar\n");
+    printf("    BEQ done\n\n");
+    printf("    MOV R4, SP\n");
+    printf("    MOV R5, SP\n");
+    printf("    SUB SP, SP, $12\n\n");
+    printf("    RSBLT R0, R0, $0\n");
+    printf("    MOVLT LR, $1\n");
+    printf("    MOVGT LR, $1\n\n");
+    printf("    LDR R1, =0X1999999A\n\n");
+    printf("loop:\n");
+    printf("    UMULL R2, R3, R0, R1\n");
+    printf("    SUB R2, R0, R3, LSL $3\n");
+    printf("    SUB R2, R2, R3, LSL $1\n\n");
+    printf("    ADD R2, R2, $'0'\n");
+    printf("    STRB R2, [R4, $-1]!\n\n");
+    printf("    MOVS R0, R3\n");
+    printf("    BNE loop\n\n");
+    printf("    CMP LR, $0\n");
+    printf("    MOVNE R0, $'-'\n");
+    printf("    BLNE putchar\n\n");
+    printf("write:\n");
+    printf("    LDRB R0, [R4], $1\n");
+    printf("    BL putchar\n");
+    printf("    CMP R4, R5\n");
+    printf("    BLT write\n\n");
+    printf("    ADD SP, SP, $12\n\n");
+    printf("done:\n");
+    printf("    LDMFD SP!, {R4, R5, LR}\n");
+    printf("    MOV R0, #'\n'\n");
+    printf("    B putchar\n\n");
+    printf("putchar:\n");
+    printf("    LDR R1, =string\n");
+    printf("    STR R0, [R1]\n");
+    printf("    MOV R0, $1\n");
+    printf("    MOV R2, $1\n");
+    printf("    MOV R7, $4\n");
+    printf("    SWI $0\n\n");
+    printf("    BX LR\n");
+}
+
+void genExit() {
+    printf("exit:\n");
+    printf("    MOV R0, $1\n");
+    printf("    MOV R7, $1\n");
+    printf("    SWI $0\n");
+}
+
 int main(int argc, char *argv[]) {
     Funs *p = parse();
 
     printf("    .text\n");
     genFuns(p);
+    genPrintDecimal();
+    genExit();
 
-    printf(".section \".toc\", \"aw\"\n");  // set up global vars
+    //printf(".section \".toc\", \"aw\"\n");  // set up global vars
+    printf("    .data\n");
     while (head != NULL) {
         printf("%s:\n", head->name);
-        printf("    .quad 0\n");
+        printf("    .word 0\n");
         head = head->next;
     }
+    printf("string: .asciz \"\"\n");
     printf("stackBottom:\n");
 
-    printf(".section \".opd\", \"aw\"\n");
+    /*printf(".section \".opd\", \"aw\"\n"); */
     printf("    .global entry\n");
     printf("entry :\n");
-    printf("    .quad main\n");
-    printf("    .quad .TOC.@tocbase\n");
+    printf("    .word _start\n");
+    //printf("    .quad .TOC.@tocbase\n");
     printf("    .quad 0\n");
 
     return 0;
