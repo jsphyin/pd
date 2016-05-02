@@ -130,8 +130,11 @@ void evalExpression(Expression *p, Fun *f) {
 	        printf("    MOV R9, R10\n");
             // printf("    mr 26, 8\n");
             evalExpression(p->right, f);
-	        printf("    MUL R10, R10, R9\n");
+            printPush(8);
+            printf("    MOV R8, R10\n");
+	        printf("    MUL R10, R8, R9\n");
             //printf("    mulld 8, 8, 26\n");
+            printPop(8);
             printPop(9);
             break;
         case eEQ:
@@ -181,7 +184,7 @@ void evalExpression(Expression *p, Fun *f) {
             evalExpression(p->right, f);
             printf("    CMP R9, R10\n");
             printf("    MOVGT R10, $1\n");
-            printf("    MOVLE R10 $0\n");
+            printf("    MOVLE R10, $0\n");
             /*printf("    mfcr 19\n");
             printf("    rlwinm 8, 19, 1, 31, 31\n");    // rotate CR 1 bit */
             printPop(9);
@@ -411,7 +414,7 @@ int main(int argc, char *argv[]) {
     /*printf(".section \".opd\", \"aw\"\n"); */
     printf("    .global entry\n");
     printf("entry :\n");
-    printf("    .word _start\n");
+    //printf("    .word _start\n");
     //printf("    .quad .TOC.@tocbase\n");
     printf("    .quad 0\n");
 
