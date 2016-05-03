@@ -233,7 +233,7 @@ void genAssignment(Statement *p, Fun *f) {
 void genPrint(Expression *p, Fun *f) {
     evalExpression(p, f);
     printPush(0);
-    printf("    MOV R0, R15\n");    //provide arguments
+    printf("    MOV R0, R10\n");    //provide arguments
     printPush(14);  // push lr
     printf("    BL print_decimal\n");
     printPop(14);
