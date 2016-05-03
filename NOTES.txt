@@ -41,3 +41,6 @@ not = eor with 0xFFFF
 and = and
 bl = bl
 b = b
+
+POTENTIAL PROBLEMS:
+- two pushes of R12

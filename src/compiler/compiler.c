@@ -98,8 +98,8 @@ void evalExpression(Expression *p, Fun *f) {
         case eVAR:
             if (findFormal(f->formals, p->varName) != -1) { // formals found
                 int index = findFormal(f->formals, p->varName);
-		        printf("    LDR R10, [R12, $%d]\n",(index + 1) * 8);
-                printf("    LDR R10, [R10]\n");
+		        printf("    LDR R10, [R12, $%d]\n",(index + 1) * 4);
+                //printf("    LDR R10, [R10]\n");
                 //printf("    ld 8, %d(7)\n", (index + 1) * 8);
             } else {
 	            printf("    LDR R10, =%s\n", p -> varName);
@@ -219,7 +219,7 @@ void genActuals(Actuals *p, Fun *f) {
     }
     genActuals(p->rest, f);
     evalExpression(p->first, f);
-    printPush(12);   // push args onto stack in reverse order
+    printPush(10);   // push args onto stack in reverse order
 }
 
 void genAssignment(Statement *p, Fun *f) {
@@ -282,7 +282,7 @@ void genBlock(Block *p, Fun *f) {
 
 void genReturn(Statement *p, Fun *f) {
     evalExpression(p->returnValue, f);  // return value is in r8
-    if (!strcmp(f->name, "main")) {
+    if (strcmp(f->name, "main") == 0) {
         printf("    B exit\n");
     } else {
         printf("    BX lr\n");
