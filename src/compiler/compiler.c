@@ -69,14 +69,14 @@ void genActuals(Actuals *, Fun *);
 
 // GPR push and pop
 void printPush(int reg) {
-    printf("    PUSH {r%d}\n", reg);
+    printf("    PUSH {R%d}\n", reg);
     //printf("    ADD R13, R13, #-8\n");
     //printf("    STR R%d, [R13]\n", reg);
     //printf("    stdu %d, -8(1)\n", reg);
 }
 
 void printPop(int reg) {
-    printf("    POP {r%d}\n", reg);
+    printf("    POP {R%d}\n", reg);
     //printf("    LDR R%d, [R13]\n", reg);
     //printf("    ADD R13, R13, #8\n");
     //printf("    ld %d, 0(1)\n", reg);
@@ -374,7 +374,7 @@ void genPrintDecimal() {
     printf("    ADD SP, SP, $12\n\n");
     printf("done:\n");
     printf("    LDMFD SP!, {R4, R5, LR}\n");
-    printf("    MOV R0, #'\n'\n");
+    printf("    MOV R0, #'\\n'\n");
     printf("    B putchar\n\n");
     printf("putchar:\n");
     printf("    LDR R1, =string\n");
@@ -404,8 +404,7 @@ int main(int argc, char *argv[]) {
     //printf(".section \".toc\", \"aw\"\n");  // set up global vars
     printf("    .data\n");
     while (head != NULL) {
-        printf("%s:\n", head->name);
-        printf("    .word 0\n");
+        printf("%s: .word 0\n", head->name);
         head = head->next;
     }
     printf("string: .asciz \"\"\n");
