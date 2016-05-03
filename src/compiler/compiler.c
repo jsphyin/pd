@@ -99,9 +99,11 @@ void evalExpression(Expression *p, Fun *f) {
             if (findFormal(f->formals, p->varName) != -1) { // formals found
                 int index = findFormal(f->formals, p->varName);
 		        printf("    LDR R10, [R12, $%d]\n",(index + 1) * 8);
+                printf("    LDR R10, [R10]\n");
                 //printf("    ld 8, %d(7)\n", (index + 1) * 8);
             } else {
 	            printf("    LDR R10, =%s\n", p -> varName);
+                printf("    LDR R10, [R10]\n");
                 //printf("    ld 8, %s@toc(2)\n", p->varName);
             }
             break;
@@ -363,9 +365,9 @@ void genPrintDecimal() {
     printf("    STRB R2, [R4, $-1]!\n\n");
     printf("    MOVS R0, R3\n");
     printf("    BNE loop\n\n");
-    printf("    CMP LR, $0\n");
+    /*printf("    CMP LR, $0\n");
     printf("    MOVNE R0, $'-'\n");
-    printf("    BLNE putchar\n\n");
+    printf("    BLNE putchar\n\n");*/
     printf("write:\n");
     printf("    LDRB R0, [R4], $1\n");
     printf("    BL putchar\n");
