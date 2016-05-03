@@ -414,10 +414,10 @@ int main(int argc, char *argv[]) {
 
     /*printf(".section \".opd\", \"aw\"\n"); */
     //printf("    .global entry\n");
-    //printf("entry :\n");
-    //printf("    .word _start\n");
+    printf("entry :\n");
+    printf("    .word _start\n");
     //printf("    .quad .TOC.@tocbase\n");
-    //printf("    .quad 0\n");
+    printf("    .quad 0\n");
 
     return 0;
 }

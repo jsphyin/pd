@@ -44,3 +44,8 @@ b = b
 
 POTENTIAL PROBLEMS:
 - two pushes of R12
+
+TESTS FAILED:
+- t2
+- t6
+- te
