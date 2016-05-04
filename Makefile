@@ -45,7 +45,7 @@ progs : $(PROGS)
 #	($(AS) -o $*.o $*.asm) || touch $@
 
 $(PROGS) : % : %.o
-	(arm-linux-gnueabi-ld -e entry -o $@ $*.o) || touch $@
+	(arm-linux-gnueabi-ld -o $@ $*.o) || touch $@
 
 outs : $(OUTS)
 
