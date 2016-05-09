@@ -69,14 +69,22 @@ void genActuals(Actuals *, Fun *);
 
 // GPR push and pop
 void printPush(int reg) {
-    printf("    PUSH {R%d}\n", reg);
+    if (reg == 14) {
+        printf("    PUSH {LR}\n");
+    } else {
+        printf("    PUSH {R%d}\n", reg);
+    }
     //printf("    ADD R13, R13, #-8\n");
     //printf("    STR R%d, [R13]\n", reg);
     //printf("    stdu %d, -8(1)\n", reg);
 }
 
 void printPop(int reg) {
-    printf("    POP {R%d}\n", reg);
+    if (reg == 14) {
+        printf("    POP {LR}\n");
+    } else {
+        printf("    POP {R%d}\n", reg);
+    }
     //printf("    LDR R%d, [R13]\n", reg);
     //printf("    ADD R13, R13, #8\n");
     //printf("    ld %d, 0(1)\n", reg);
@@ -206,7 +214,7 @@ void evalExpression(Expression *p, Fun *f) {
                 printf("    BL %s\n", p->callName);
             }
             printPop(12);
-            printf("    ADD R13, R13, $%d\n", offset * 8);  // restore stack ptr
+            printf("    ADD R13, R13, $%d\n", offset * 4);  // restore stack ptr
             printPop(14);   // restore link
             //printf("    mtlr 6\n"); // restore link
             break;
