@@ -106,7 +106,12 @@ void run(State* s) {
         } else if (!two7to26 && two4to21 == 2) {//sub
 
         } else if (!two7to26 && two4to21 == 3) {//rsblt
-
+            if(conditionPassed(s,cond)){
+                uint32_t rn = extract(check,12,15);
+                uint32_t rd = extract(check,16,19);
+                uint32_t shifter = extract(check,20,31);
+                s->gprs[rd] = shifter - s->gprs[rn];
+            }
         } else if (two7to24 == 15) {//swi
             int sctype = s->gprs[7];
             if (sctype == 1) {  // exit
@@ -131,7 +136,15 @@ void run(State* s) {
                 s->pc = s->pc + extend;
             }
         } else if (two7to26 == 1) {//ldr and str
-
+            if(extract(check,11,11)){//ldr and ldrb
+                if(!extract(check,10,10)){//ldr
+                    
+                }
+                else{//ldrb
+                }
+            }
+            else{
+            }
         }
     }
 }
