@@ -57,20 +57,20 @@ uint32_t conditionPassed(State* s, uint32_t cond){
 void run(State* s) {
     int run =1;
     while(run){
-        uint32_t check = read32(s->mem,s->pc); 
-        uint32_t cond = extract(check,0,3);
-        uint32_t push1 = extract(check,0,16);
-        uint32_t push2 = extract(check,18,23);
-        uint32_t pop1 = extract(check,0,15);
-        uint32_t pop2 = extract(check,17,23);
-        uint32_t two7to26 = extract(check,4,5);
-        uint32_t two4to21 = extract(check,7,10);
-        uint32_t two7to21 = extract(check,4,10);
-        uint32_t two7to20 = extract(check,4,9);
-        uint32_t sevto4 = extract(check,24,27);
-        uint32_t two4to20 = extract(check,7,11);
-        uint32_t two7to25 = extract(check,4,6);
-        uint32_t two7to24 = extract(check,4,7);
+        uint32_t check = read32(s->mem, s->pc); 
+        uint32_t cond = extract(check, 0, 3);
+        uint32_t push1 = extract(check, 0, 16);
+        uint32_t push2 = extract(check, 18, 23);
+        uint32_t pop1 = extract(check, 0, 15);
+        uint32_t pop2 = extract(check, 17, 23);
+        uint32_t two7to26 = extract(check, 4, 5);
+        uint32_t two4to21 = extract(check, 7, 10);
+        uint32_t two7to21 = extract(check, 4, 10);
+        uint32_t two7to20 = extract(check, 4, 9);
+        uint32_t sevto4 = extract(check, 24, 27);
+        uint32_t two4to20 = extract(check, 7, 11);
+        uint32_t two7to25 = extract(check, 4, 6);
+        uint32_t two7to24 = extract(check, 4, 7);
         if (push1 == 119386 && push2 == 0){//push
 
         } else if (pop1 == 59581 && pop2 == 0){//pop
