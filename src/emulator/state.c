@@ -50,12 +50,33 @@ void run(State* s) {
         uint32_t 24to20 = extract(check,7,11);
         uint32_t 27to25 = extract(check,4,6);
         uint32_t 27to24 = extract(check,4,7);
-	if(27to20 == 18 && 7to4 == 1){//bx
+	if(push1 == 119386 && push2 == 0){//push
+	}
+	else if(pop1 == 59581 && pop2 == 0){//pop
+	}
+	else if(27to20 == 18 && 7to4 == 1){//bx
 	}
         else if(27to21 == 4 && 7to4 == 9){//umull
 	}
 	else if(27to21 == 0 && 7to4 == 9){//mul
 	}
-	else if(
+	else if(!27to26 && 24to20 == 21){//cmp
+	}
+	else if(!27to26 && 24to21 == 13){//mov and other forms
+	}
+	else if(!27to26 && 24to21 == 4){//add
+	}
+	else if(!27to26 && 24to21 == 2){//sub
+	}
+	else if(!27to26 && 24to21 == 3){//rsblt
+	}
+	else if(27to24 == 15){//swi
+	}
+	else if(27to25 == 4){//stmfd and ldmfd
+	}
+	else if(27to25 == 5){//branches
+	}
+	else if (27to26 == 1){//ldr and str
+	}
     }
 }
