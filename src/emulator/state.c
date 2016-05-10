@@ -98,8 +98,14 @@ void run(State* s) {
         } else if (!two7to26 && two4to21 == 13) {//mov and other forms
             // need to check I bit + bit[7] and bit[4] of shifter operand
             uint32_t shifterOperand = addressingMode(s, check);
-            if (conditionPassed(s, cond)) {
-            
+            uint32_t rd = extract(16, 19);
+            if (conditionPassed(check, cond)) {
+                s->gprs[rd] = shifterOperand;
+                if (extract(check, 11, 11) && rd == 15) {
+                    s->cr = s->SPSR;    // PLACEHOLDER
+                } else if (extract(check, 11, 11)) {
+                    // SET FLAGS
+                }
             }
         } else if (!two7to26 && two4to21 == 4) {//add
 
