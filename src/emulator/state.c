@@ -33,22 +33,24 @@ void statedump(State* s){
     printf("LR:%lx\n",s->lr);
 }
 
-uint32_t conditionpassed(uint32_t cond){
+uint32_t conditionpassed(State* s, uint32_t cond){
     switch(cond){
         case 0://eq
-            return cr[1] == 1; 
+            return s->cr[1] == 1; 
         case 1://ne
-            return cr[1] == 0;
+            return s->cr[1] == 0;
         case 10://ge
-            return cr[0] == cr[3];
+            return s->cr[0] == s->cr[3];
         case 11://lt
-            return cr[0] != cr[3];
+            return s->cr[0] != s->cr[3];
         case 12://gt
-            return ((cr[1] == 0) && (cr[0] == cr[3]));
+            return ((s->cr[1] == 0) && (s->cr[0] == s->cr[3]));
         case 13://le
-            return ((cr[1] == 1) && (cr[0] != cr[3]));
+            return ((s->cr[1] == 1) && (s->cr[0] != s->cr[3]));
         case 14://always(unconditional
             return 1;
+        default:
+            return 0;
     }
 }
 
@@ -61,45 +63,45 @@ void run(State* s) {
         uint32_t push2 = extract(check,18,23);
         uint32_t pop1 = extract(check,0,15);
         uint32_t pop2 = extract(check,17,23);
-        uint32_t 27to26 = extract(check,4,5);
-        uint32_t 24to21 = extract(check,7,10);
-        uint32_t 27to21 = extract(check,4,10);
-        uint32_t 27to20 = extract(check,4,9);
-        uint32_t 7to4 = extract(check,24,27);
-        uint32_t 24to20 = extract(check,7,11);
-        uint32_t 27to25 = extract(check,4,6);
-        uint32_t 27to24 = extract(check,4,7);
+        uint32_t two7to26 = extract(check,4,5);
+        uint32_t two4to21 = extract(check,7,10);
+        uint32_t two7to21 = extract(check,4,10);
+        uint32_t two7to20 = extract(check,4,9);
+        uint32_t sevto4 = extract(check,24,27);
+        uint32_t two4to20 = extract(check,7,11);
+        uint32_t two7to25 = extract(check,4,6);
+        uint32_t two7to24 = extract(check,4,7);
         if(push1 == 119386 && push2 == 0){//push
         }
         else if(pop1 == 59581 && pop2 == 0){//pop
         }
-        else if(27to20 == 18 && 7to4 == 1){//bx
+        else if(two7to20 == 18 && sevto4 == 1){//bx
             uint32_t rm = extract(check,28,31);
-            if(conditionpassed(cond)){
-                s->pc = gprs[rm] & 0xFFFFFFFE;
+            if(conditionpassed(s, cond)){
+                s->pc = s->gprs[rm] & 0xFFFFFFFE;
             }
         }
-        else if(27to21 == 4 && 7to4 == 9){//umull
+        else if(two7to21 == 4 && sevto4 == 9){//umull
         }
-        else if(27to21 == 0 && 7to4 == 9){//mul
+        else if(two7to21 == 0 && sevto4 == 9){//mul
         }
-        else if(!27to26 && 24to20 == 21){//cmp
+        else if(!two7to26 && two4to20 == 21){//cmp
         }
-        else if(!27to26 && 24to21 == 13){//mov and other forms
+        else if(!two7to26 && two4to21 == 13){//mov and other forms
         }
-        else if(!27to26 && 24to21 == 4){//add
+        else if(!two7to26 && two4to21 == 4){//add
         }
-        else if(!27to26 && 24to21 == 2){//sub
+        else if(!two7to26 && two4to21 == 2){//sub
         }
-        else if(!27to26 && 24to21 == 3){//rsblt
+        else if(!two7to26 && two4to21 == 3){//rsblt
         }
-        else if(27to24 == 15){//swi
+        else if(two7to24 == 15){//swi
         }
-        else if(27to25 == 4){//stmfd and ldmfd
+        else if(two7to25 == 4){//stmfd and ldmfd
         }
-        else if(27to25 == 5){//branches
+        else if(two7to25 == 5){//branches
             uint32_t L = extract(check,7,7);
-            if(conditionpassed(cond)){
+            if(conditionpassed(s, cond)){
                 if(L)
                     s->lr = s->pc + 4;
                 uint32_t tempextend = extract(check,8,31);
@@ -109,7 +111,7 @@ void run(State* s) {
                 s->pc = s->pc + extend;
             }
         }
-        else if (27to26 == 1){//ldr and str
+        else if (two7to26 == 1){//ldr and str
         }
     }
 }
