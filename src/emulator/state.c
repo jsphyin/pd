@@ -15,14 +15,14 @@ State* newState(Memory* memory) {
     return s;
 }
 
-uint32_t extract(uint32_t total,int start,int end){
+uint32_t extract(uint32_t total,int start,int end) {
     uint32_t temp = total << start;
     //uint32_t cutoff = (uint32_t) temp;
     temp = temp >> (31-(end-start));
     return temp;
 }
 
-void statedump(State* s){
+void statedump(State* s) {
     for(int i=0;i<32;i++){
         printf("GPR%d:%lx\n",i,s->gprs[i]);
     }
@@ -33,7 +33,7 @@ void statedump(State* s){
     printf("LR:%lx\n",s->lr);
 }
 
-uint32_t conditionPassed(State* s, uint32_t cond){
+uint32_t conditionPassed(State* s, uint32_t cond) {
     switch(cond){
         case 0://eq
             return s->cr[1] == 1; 
@@ -54,9 +54,17 @@ uint32_t conditionPassed(State* s, uint32_t cond){
     }
 }
 
+uint32_t addressingMode(State* s, uint32_t inst) {
+    uint32_t immAd = extract(inst, 4, 6);
+    if (immAd == 1) {
+        uint32_t immed8 = extract(inst, 24, 31);
+        uint32_t rotate_imm = extract(inst, 20, 23);
+    }
+}
+
 void run(State* s) {
-    int run =1;
-    while(run){
+    int run = 1;
+    while (run) {
         uint32_t check = read32(s->mem, s->pc); 
         uint32_t cond = extract(check, 0, 3);
         uint32_t push1 = extract(check, 0, 16);
@@ -71,46 +79,48 @@ void run(State* s) {
         uint32_t two4to20 = extract(check, 7, 11);
         uint32_t two7to25 = extract(check, 4, 6);
         uint32_t two7to24 = extract(check, 4, 7);
-        if (push1 == 119386 && push2 == 0){//push
+        if (push1 == 119386 && push2 == 0) {//push
 
-        } else if (pop1 == 59581 && pop2 == 0){//pop
+        } else if (pop1 == 59581 && pop2 == 0) {//pop
 
-        } else if (two7to20 == 18 && sevto4 == 1){//bx
-            uint32_t rm = extract(check,28,31);
-            if(conditionPassed(s, cond)){
+        } else if (two7to20 == 18 && sevto4 == 1) {//bx
+            uint32_t rm = extract(check, 28, 31);
+            if (conditionPassed(s, cond)){
                 s->pc = (s->gprs[rm] & 0xFFFFFFFE);
             }
 
-        } else if (two7to21 == 4 && sevto4 == 9){//umull
+        } else if (two7to21 == 4 && sevto4 == 9) {//umull
 
-        } else if (two7to21 == 0 && sevto4 == 9){//mul
+        } else if (two7to21 == 0 && sevto4 == 9) {//mul
 
-        } else if (!two7to26 && two4to20 == 21){//cmp
+        } else if (!two7to26 && two4to20 == 21) {//cmp
 
-        } else if (!two7to26 && two4to21 == 13){//mov and other forms
+        } else if (!two7to26 && two4to21 == 13) {//mov and other forms
+            // need to check I bit + bit[7] and bit[4] of shifter operand
+            uint32_t shifterOperand = addressingMode(s, check);
             if (conditionPassed(s, cond)) {
-                
+            
             }
-        } else if (!two7to26 && two4to21 == 4){//add
+        } else if (!two7to26 && two4to21 == 4) {//add
 
-        } else if (!two7to26 && two4to21 == 2){//sub
+        } else if (!two7to26 && two4to21 == 2) {//sub
 
-        } else if (!two7to26 && two4to21 == 3){//rsblt
+        } else if (!two7to26 && two4to21 == 3) {//rsblt
 
-        } else if (two7to24 == 15){//swi
+        } else if (two7to24 == 15) {//swi
             int sctype = s->gprs[7];
-            if (sctype == 1){
+            if (sctype == 1) {  // exit
                 run = 0;
             }
-            else if (sctype == 4){
+            else if (sctype == 4) { // print
                 printf("%c",read8(s->mem,s->gprs[1]));
                 s->pc += 4;
             }
-        } else if (two7to25 == 4){//stmfd and ldmfd
+        } else if (two7to25 == 4) {//stmfd and ldmfd
 
-        } else if (two7to25 == 5){//branches
+        } else if (two7to25 == 5) {//branches
             uint32_t L = extract(check,7,7);
-            if (conditionPassed(s, cond)){
+            if (conditionPassed(s, cond)) {
                 if (L)
                     s->lr = s->pc + 4;
                 }
@@ -120,7 +130,7 @@ void run(State* s) {
                 extend = extend << 2;
                 s->pc = s->pc + extend;
             }
-        } else if (two7to26 == 1){//ldr and str
+        } else if (two7to26 == 1) {//ldr and str
 
         }
     }
