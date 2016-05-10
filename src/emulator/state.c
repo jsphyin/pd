@@ -78,7 +78,7 @@ void run(State* s) {
         else if(two7to20 == 18 && sevto4 == 1){//bx
             uint32_t rm = extract(check,28,31);
             if(conditionpassed(s, cond)){
-                s->pc = s->gprs[rm] & 0xFFFFFFFE;
+                s->pc = (s->gprs[rm] & 0xFFFFFFFE);
             }
         }
         else if(two7to21 == 4 && sevto4 == 9){//umull
@@ -96,6 +96,14 @@ void run(State* s) {
         else if(!two7to26 && two4to21 == 3){//rsblt
         }
         else if(two7to24 == 15){//swi
+	    int sctype = s->gprs[7];
+	    if(sctype == 1){
+	    	run = 0;
+	    }
+	    else if (sctype == 4){
+	    	printf("%c",read8(s->mem,s->gprs[1]));
+		s->pc += 4;
+	    }
         }
         else if(two7to25 == 4){//stmfd and ldmfd
         }
