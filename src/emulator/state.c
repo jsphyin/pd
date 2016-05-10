@@ -33,7 +33,7 @@ void statedump(State* s){
     printf("LR:%lx\n",s->lr);
 }
 
-uint32_t conditionpassed(State* s, uint32_t cond){
+uint32_t conditionPassed(State* s, uint32_t cond){
     switch(cond){
         case 0://eq
             return s->cr[1] == 1; 
@@ -71,46 +71,47 @@ void run(State* s) {
         uint32_t two4to20 = extract(check,7,11);
         uint32_t two7to25 = extract(check,4,6);
         uint32_t two7to24 = extract(check,4,7);
-        if(push1 == 119386 && push2 == 0){//push
-        }
-        else if(pop1 == 59581 && pop2 == 0){//pop
-        }
-        else if(two7to20 == 18 && sevto4 == 1){//bx
+        if (push1 == 119386 && push2 == 0){//push
+
+        } else if (pop1 == 59581 && pop2 == 0){//pop
+
+        } else if (two7to20 == 18 && sevto4 == 1){//bx
             uint32_t rm = extract(check,28,31);
-            if(conditionpassed(s, cond)){
+            if(conditionPassed(s, cond)){
                 s->pc = (s->gprs[rm] & 0xFFFFFFFE);
             }
-        }
-        else if(two7to21 == 4 && sevto4 == 9){//umull
-        }
-        else if(two7to21 == 0 && sevto4 == 9){//mul
-        }
-        else if(!two7to26 && two4to20 == 21){//cmp
-        }
-        else if(!two7to26 && two4to21 == 13){//mov and other forms
-        }
-        else if(!two7to26 && two4to21 == 4){//add
-        }
-        else if(!two7to26 && two4to21 == 2){//sub
-        }
-        else if(!two7to26 && two4to21 == 3){//rsblt
-        }
-        else if(two7to24 == 15){//swi
-	    int sctype = s->gprs[7];
-	    if(sctype == 1){
-	    	run = 0;
-	    }
-	    else if (sctype == 4){
-	    	printf("%c",read8(s->mem,s->gprs[1]));
-		s->pc += 4;
-	    }
-        }
-        else if(two7to25 == 4){//stmfd and ldmfd
-        }
-        else if(two7to25 == 5){//branches
+
+        } else if (two7to21 == 4 && sevto4 == 9){//umull
+
+        } else if (two7to21 == 0 && sevto4 == 9){//mul
+
+        } else if (!two7to26 && two4to20 == 21){//cmp
+
+        } else if (!two7to26 && two4to21 == 13){//mov and other forms
+            if (conditionPassed(s, cond)) {
+                
+            }
+        } else if (!two7to26 && two4to21 == 4){//add
+
+        } else if (!two7to26 && two4to21 == 2){//sub
+
+        } else if (!two7to26 && two4to21 == 3){//rsblt
+
+        } else if (two7to24 == 15){//swi
+            int sctype = s->gprs[7];
+            if (sctype == 1){
+                run = 0;
+            }
+            else if (sctype == 4){
+                printf("%c",read8(s->mem,s->gprs[1]));
+                s->pc += 4;
+            }
+        } else if (two7to25 == 4){//stmfd and ldmfd
+
+        } else if (two7to25 == 5){//branches
             uint32_t L = extract(check,7,7);
-            if(conditionpassed(s, cond)){
-                if(L)
+            if (conditionPassed(s, cond)){
+                if (L)
                     s->lr = s->pc + 4;
                 }
                 uint32_t tempextend = extract(check,8,31);
@@ -119,8 +120,8 @@ void run(State* s) {
                 extend = extend << 2;
                 s->pc = s->pc + extend;
             }
-        }
-        else if (two7to26 == 1){//ldr and str
+        } else if (two7to26 == 1){//ldr and str
+
         }
     }
 }
