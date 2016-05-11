@@ -79,39 +79,87 @@ void run(State* s) {
         uint32_t two4to20 = extract(check, 7, 11);
         uint32_t two7to25 = extract(check, 4, 6);
         uint32_t two7to24 = extract(check, 4, 7);
-        if (push1 == 119386 && push2 == 0) {//push
+        if (push1 == 119386 && push2 == 0) {    // push
 
-        } else if (pop1 == 59581 && pop2 == 0) {//pop
+        } else if (pop1 == 59581 && pop2 == 0) {    // pop
 
-        } else if (two7to20 == 18 && sevto4 == 1) {//bx
+        } else if (two7to20 == 18 && sevto4 == 1) { // bx
             uint32_t rm = extract(check, 28, 31);
             if (conditionPassed(s, cond)){
                 s->pc = (s->gprs[rm] & 0xFFFFFFFE);
             }
 
-        } else if (two7to21 == 4 && sevto4 == 9) {//umull
+        } else if (two7to21 == 4 && sevto4 == 9) {  // umull
 
-        } else if (two7to21 == 0 && sevto4 == 9) {//mul
+        } else if (two7to21 == 0 && sevto4 == 9) {  // mul
 
-        } else if (!two7to26 && two4to20 == 21) {//cmp
+        } else if (!two7to26 && two4to20 == 21) {   // cmp
+            if (conditionPassed(check, cond)) {
+                uint32_t alu_out
+            }
 
-        } else if (!two7to26 && two4to21 == 13) {//mov and other forms
+        } else if (!two7to26 && two4to21 == 13) {   // mov and other forms
             // need to check I bit + bit[7] and bit[4] of shifter operand
+            // (otherwise not a move)
+            if (extract(check, 11, 11) == 0 && extract(check, 24, 24) == 1
+                    && extract(check, 27, 27) == 1) {
+                return;
+            }
+
+            uint32_t rd = extract(check, 16, 19);
             uint32_t shifterOperand = addressingMode(s, check);
-            uint32_t rd = extract(16, 19);
+
             if (conditionPassed(check, cond)) {
                 s->gprs[rd] = shifterOperand;
+                if (extract(check, 11, 11) && rd == 15) {   // movs
+                    s->cr = s->SPSR;    // PLACEHOLDER
+                } else if (extract(check, 11, 11)) {
+                    // SET FLAGS
+                }
+            }
+        } else if (!two7to26 && two4to21 == 4) {    // add 
+            // need to check I bit, bit[7] and bit[4] of shifter operand
+            // (otherwise not an add)
+            if (extract(check, 11, 11) == 0 && extract(check, 24, 24) == 1
+                    && extract(check, 27, 27) == 1) {
+                return;
+            }
+
+            uint32_t rn = extract(check, 12, 15);
+            uint32_t rd = extract(check, 16, 19);
+            uint32_t shifterOperand = addressingMode(s, check);
+
+            if (conditionPassed(check, cond)) {
+                s->gprs[rd] = s->gprs[rn] + shifterOperand;
+                if (extract(check, 11, 11) && rd == 15) {   // if S bit is set, update cr
+                    s->cr = s->SPSR;    // PLACEHOLDER
+                } else if (extract(check, 11, 11)) {
+                    // SET FLAGS
+                }
+            }
+
+        } else if (!two7to26 && two4to21 == 2) {    // sub
+            // need to check I bit, bit[7] and bit[4] of shifter operand
+            // (otherwise not a sub)
+            if (extract(check, 11, 11) == 0 && extract(check, 24, 24) == 1
+                    && extract(check, 27, 27) == 1) {
+                return;
+            }
+
+            uint32_t rn = extract(check, 12, 15);
+            uint32_t rd = extract(check, 16, 19);
+            uint32_t shifterOperand = addressingMode(s, check);
+
+            if (conditionPassed(check, cond)) {
+                rd = rn - shifterOperand;
                 if (extract(check, 11, 11) && rd == 15) {
                     s->cr = s->SPSR;    // PLACEHOLDER
                 } else if (extract(check, 11, 11)) {
                     // SET FLAGS
                 }
             }
-        } else if (!two7to26 && two4to21 == 4) {//add
 
-        } else if (!two7to26 && two4to21 == 2) {//sub
-
-        } else if (!two7to26 && two4to21 == 3) {//rsblt
+        } else if (!two7to26 && two4to21 == 3) {    // rsblt
             if(conditionPassed(s,cond)){
                 uint32_t rn = extract(check,12,15);
                 uint32_t rd = extract(check,16,19);
