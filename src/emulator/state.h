@@ -5,10 +5,10 @@
 #include "memory.h"
 
 typedef struct State{
-    uint64_t gprs [32];
-    uint64_t pc;
-    uint64_t cr [3];
-    uint64_t lr;
+    uint32_t gprs [32];
+    uint32_t pc;
+    uint32_t cr [3];
+    uint32_t lr;
     Memory* mem;
 } State;
 

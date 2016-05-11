@@ -35,19 +35,19 @@ void statedump(State* s) {
 
 uint32_t conditionPassed(State* s, uint32_t cond) {
     switch(cond){
-        case 0://eq
+        case 0: //eq
             return s->cr[1] == 1; 
-        case 1://ne
+        case 1: //ne
             return s->cr[1] == 0;
-        case 10://ge
+        case 10:    //ge
             return s->cr[0] == s->cr[3];
-        case 11://lt
+        case 11:    //lt
             return s->cr[0] != s->cr[3];
-        case 12://gt
+        case 12:    //gt
             return ((s->cr[1] == 0) && (s->cr[0] == s->cr[3]));
-        case 13://le
+        case 13:    //le
             return ((s->cr[1] == 1) && (s->cr[0] != s->cr[3]));
-        case 14://always(unconditional
+        case 14:    //always(unconditional
             return 1;
         default:
             return 0;
