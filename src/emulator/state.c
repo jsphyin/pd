@@ -65,75 +65,101 @@ uint32_t addressingMode(State* s, uint32_t inst) {
 void run(State* s) {
     int run = 1;
     while (run) {
-        uint32_t check = read32(s->mem, s->pc); 
-        uint32_t cond = extract(check, 0, 3);
-        uint32_t push1 = extract(check, 0, 16);
-        uint32_t push2 = extract(check, 18, 23);
-        uint32_t pop1 = extract(check, 0, 15);
-        uint32_t pop2 = extract(check, 17, 23);
-        uint32_t two7to26 = extract(check, 4, 5);
-        uint32_t two4to21 = extract(check, 7, 10);
-        uint32_t two7to21 = extract(check, 4, 10);
-        uint32_t two7to20 = extract(check, 4, 9);
-        uint32_t sevto4 = extract(check, 24, 27);
-        uint32_t two4to20 = extract(check, 7, 11);
-        uint32_t two7to25 = extract(check, 4, 6);
-        uint32_t two7to24 = extract(check, 4, 7);
+        uint32_t inst = read32(s->mem, s->pc); 
+        uint32_t cond = extract(inst, 0, 3);
+        uint32_t push1 = extract(inst, 0, 16);
+        uint32_t push2 = extract(inst, 18, 23);
+        uint32_t pop1 = extract(inst, 0, 15);
+        uint32_t pop2 = extract(inst, 17, 23);
+        uint32_t two7to26 = extract(inst, 4, 5);
+        uint32_t two4to21 = extract(inst, 7, 10);
+        uint32_t two7to21 = extract(inst, 4, 10);
+        uint32_t two7to20 = extract(inst, 4, 9);
+        uint32_t sevto4 = extract(inst, 24, 27);
+        uint32_t two4to20 = extract(inst, 7, 11);
+        uint32_t two7to25 = extract(inst, 4, 6);
+        uint32_t two7to24 = extract(inst, 4, 7);
         if (push1 == 119386 && push2 == 0) {    // push
 
         } else if (pop1 == 59581 && pop2 == 0) {    // pop
 
         } else if (two7to20 == 18 && sevto4 == 1) { // bx
-            uint32_t rm = extract(check, 28, 31);
+            uint32_t rm = extract(inst, 28, 31);
             if (conditionPassed(s, cond)){
                 s->pc = (s->gprs[rm] & 0xFFFFFFFE);
             }
 
         } else if (two7to21 == 4 && sevto4 == 9) {  // umull
+            uint32_t rdHi = extract(inst, 12, 15);
+            uint32_t rdLo = extract(inst, 16, 19);
+            uint32_t rs = extract(inst, 20, 23);
+            uint32_t rm = extract(inst, 28, 31);
+
+            if (conditionPassed(s, cond)) {
+                rdHi = (rm * rs);
+            }
 
         } else if (two7to21 == 0 && sevto4 == 9) {  // mul
+            uint32_t rd = extract(inst, 12, 15);
+            uint32_t rs = extract(inst, 20, 23);
+            uint32_t rm = extract(inst, 28, 31);
+
+            if (conditionPassed(s, cond)) {
+                s->gprs[rd] = s->gprs[rm] * s->gprs[rs];
+                if (extract(inst, 11, 11)) {
+                    // SET FLAGS
+                }
+            }
 
         } else if (!two7to26 && two4to20 == 21) {   // cmp
-            if (conditionPassed(check, cond)) {
-                uint32_t alu_out
+            if (extract(inst, 11, 11) == 0 && extract(inst, 24, 24) == 1
+                    && extract(inst, 27, 27) == 1) {
+                return;
+            }
+
+            uint32_t shifter_operand = addressingMode(s, inst);
+
+            if (conditionPassed(inst, cond)) {
+                uint32_t alu_out = s->gprs[rn] - shifterOperand;
+                // SET FLAGS
             }
 
         } else if (!two7to26 && two4to21 == 13) {   // mov and other forms
             // need to check I bit + bit[7] and bit[4] of shifter operand
             // (otherwise not a move)
-            if (extract(check, 11, 11) == 0 && extract(check, 24, 24) == 1
-                    && extract(check, 27, 27) == 1) {
+            if (extract(inst, 11, 11) == 0 && extract(inst, 24, 24) == 1
+                    && extract(inst, 27, 27) == 1) {
                 return;
             }
 
-            uint32_t rd = extract(check, 16, 19);
-            uint32_t shifterOperand = addressingMode(s, check);
+            uint32_t rd = extract(inst, 16, 19);
+            uint32_t shifterOperand = addressingMode(s, inst);
 
-            if (conditionPassed(check, cond)) {
+            if (conditionPassed(inst, cond)) {
                 s->gprs[rd] = shifterOperand;
-                if (extract(check, 11, 11) && rd == 15) {   // movs
+                if (extract(inst, 11, 11) && rd == 15) {   // movs
                     s->cr = s->SPSR;    // PLACEHOLDER
-                } else if (extract(check, 11, 11)) {
+                } else if (extract(inst, 11, 11)) {
                     // SET FLAGS
                 }
             }
         } else if (!two7to26 && two4to21 == 4) {    // add 
             // need to check I bit, bit[7] and bit[4] of shifter operand
             // (otherwise not an add)
-            if (extract(check, 11, 11) == 0 && extract(check, 24, 24) == 1
-                    && extract(check, 27, 27) == 1) {
+            if (extract(inst, 11, 11) == 0 && extract(inst, 24, 24) == 1
+                    && extract(inst, 27, 27) == 1) {
                 return;
             }
 
-            uint32_t rn = extract(check, 12, 15);
-            uint32_t rd = extract(check, 16, 19);
-            uint32_t shifterOperand = addressingMode(s, check);
+            uint32_t rn = extract(inst, 12, 15);
+            uint32_t rd = extract(inst, 16, 19);
+            uint32_t shifterOperand = addressingMode(s, inst);
 
-            if (conditionPassed(check, cond)) {
+            if (conditionPassed(inst, cond)) {
                 s->gprs[rd] = s->gprs[rn] + shifterOperand;
-                if (extract(check, 11, 11) && rd == 15) {   // if S bit is set, update cr
+                if (extract(inst, 11, 11) && rd == 15) {   // if S bit is set, update cr
                     s->cr = s->SPSR;    // PLACEHOLDER
-                } else if (extract(check, 11, 11)) {
+                } else if (extract(inst, 11, 11)) {
                     // SET FLAGS
                 }
             }
@@ -141,29 +167,29 @@ void run(State* s) {
         } else if (!two7to26 && two4to21 == 2) {    // sub
             // need to check I bit, bit[7] and bit[4] of shifter operand
             // (otherwise not a sub)
-            if (extract(check, 11, 11) == 0 && extract(check, 24, 24) == 1
-                    && extract(check, 27, 27) == 1) {
+            if (extract(inst, 11, 11) == 0 && extract(inst, 24, 24) == 1
+                    && extract(inst, 27, 27) == 1) {
                 return;
             }
 
-            uint32_t rn = extract(check, 12, 15);
-            uint32_t rd = extract(check, 16, 19);
-            uint32_t shifterOperand = addressingMode(s, check);
+            uint32_t rn = extract(inst, 12, 15);
+            uint32_t rd = extract(inst, 16, 19);
+            uint32_t shifterOperand = addressingMode(s, inst);
 
-            if (conditionPassed(check, cond)) {
-                rd = rn - shifterOperand;
-                if (extract(check, 11, 11) && rd == 15) {
+            if (conditionPassed(inst, cond)) {
+                s->gprs[rd] = s->gprs[rn] - shifterOperand;
+                if (extract(inst, 11, 11) && rd == 15) {
                     s->cr = s->SPSR;    // PLACEHOLDER
-                } else if (extract(check, 11, 11)) {
+                } else if (extract(inst, 11, 11)) {
                     // SET FLAGS
                 }
             }
 
         } else if (!two7to26 && two4to21 == 3) {    // rsblt
             if(conditionPassed(s,cond)){
-                uint32_t rn = extract(check,12,15);
-                uint32_t rd = extract(check,16,19);
-                uint32_t shifter = extract(check,20,31);
+                uint32_t rn = extract(inst,12,15);
+                uint32_t rd = extract(inst,16,19);
+                uint32_t shifter = extract(inst,20,31);
                 s->gprs[rd] = shifter - s->gprs[rn];
             }
         } else if (two7to24 == 15) {//swi
@@ -178,20 +204,20 @@ void run(State* s) {
         } else if (two7to25 == 4) {//stmfd and ldmfd
 
         } else if (two7to25 == 5) {//branches
-            uint32_t L = extract(check,7,7);
+            uint32_t L = extract(inst,7,7);
             if (conditionPassed(s, cond)) {
                 if (L)
                     s->lr = s->pc + 4;
                 }
-                uint32_t tempextend = extract(check,8,31);
+                uint32_t tempextend = extract(inst,8,31);
                 tempextend = tempextend << 8;
                 int32_t extend = (int32_t) tempextend >> 8;
                 extend = extend << 2;
                 s->pc = s->pc + extend;
             }
         } else if (two7to26 == 1) {//ldr and str
-            if(extract(check,11,11)){//ldr and ldrb
-                if(!extract(check,10,10)){//ldr
+            if(extract(inst,11,11)){//ldr and ldrb
+                if(!extract(inst,10,10)){//ldr
                     
                 }
                 else{//ldrb
