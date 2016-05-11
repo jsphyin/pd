@@ -23,14 +23,14 @@ uint32_t extract(uint32_t total,int start,int end) {
 }
 
 void statedump(State* s) {
-    for(int i=0;i<32;i++){
-        printf("GPR%d:%lx\n",i,s->gprs[i]);
+    for (int i=0;i<32;i++) {
+        printf("GPR%d:%x\n", i, s->gprs[i]);
     }
-    for(int i=0;i<3;i++){
-        printf("CR%d:%lx\n",i,s->cr[i]);
+    for (int i=0;i<3;i++) {
+        printf("CR%d:%x\n", i, s->cr[i]);
     }
-    printf("PC:%lx\n",s->pc);
-    printf("LR:%lx\n",s->lr);
+    printf("PC:%x\n",s->pc);
+    printf("LR:%x\n",s->lr);
 }
 
 uint32_t conditionPassed(State* s, uint32_t cond) {
@@ -57,9 +57,10 @@ uint32_t conditionPassed(State* s, uint32_t cond) {
 uint32_t addressingMode(State* s, uint32_t inst) {
     uint32_t immAd = extract(inst, 4, 6);
     if (immAd == 1) {
-        uint32_t immed8 = extract(inst, 24, 31);
-        uint32_t rotate_imm = extract(inst, 20, 23);
+       // uint32_t immed8 = extract(inst, 24, 31);
+        //uint32_t rotate_imm = extract(inst, 20, 23);
     }
+    return 0;
 }
 
 void run(State* s) {
@@ -79,24 +80,24 @@ void run(State* s) {
         uint32_t two4to20 = extract(inst, 7, 11);
         uint32_t two7to25 = extract(inst, 4, 6);
         uint32_t two7to24 = extract(inst, 4, 7);
-        if (push1 == 119386 && push2 == 0) {    // push
+        if (push1 == 119386 && push2 == 0) {    // push (stmdb)
 
-        } else if (pop1 == 59581 && pop2 == 0) {    // pop
+        } else if (pop1 == 59581 && pop2 == 0) {    // pop (ldmia)
 
         } else if (two7to20 == 18 && sevto4 == 1) { // bx
             uint32_t rm = extract(inst, 28, 31);
-            if (conditionPassed(s, cond)){
+            if (conditionPassed(s, cond)) {
                 s->pc = (s->gprs[rm] & 0xFFFFFFFE);
             }
 
         } else if (two7to21 == 4 && sevto4 == 9) {  // umull
             uint32_t rdHi = extract(inst, 12, 15);
-            uint32_t rdLo = extract(inst, 16, 19);
+            //uint32_t rdLo = extract(inst, 16, 19);
             uint32_t rs = extract(inst, 20, 23);
             uint32_t rm = extract(inst, 28, 31);
 
             if (conditionPassed(s, cond)) {
-                rdHi = (rm * rs);
+                s->gprs[rdHi] = (s->gprs[rm] * s->gprs[rs]);
             }
 
         } else if (two7to21 == 0 && sevto4 == 9) {  // mul
@@ -117,10 +118,11 @@ void run(State* s) {
                 return;
             }
 
-            uint32_t shifter_operand = addressingMode(s, inst);
+            //uint32_t shifterOperand = addressingMode(s, inst);
+            //uint32_t rn = extract(inst, 12, 15);
 
-            if (conditionPassed(inst, cond)) {
-                uint32_t alu_out = s->gprs[rn] - shifterOperand;
+            if (conditionPassed(s, cond)) {
+                //uint32_t alu_out = s->gprs[rn] - shifterOperand;
                 // SET FLAGS
             }
 
@@ -135,10 +137,10 @@ void run(State* s) {
             uint32_t rd = extract(inst, 16, 19);
             uint32_t shifterOperand = addressingMode(s, inst);
 
-            if (conditionPassed(inst, cond)) {
+            if (conditionPassed(s, cond)) {
                 s->gprs[rd] = shifterOperand;
                 if (extract(inst, 11, 11) && rd == 15) {   // movs
-                    s->cr = s->SPSR;    // PLACEHOLDER
+                    //s->cr = s->SPSR;    // PLACEHOLDER
                 } else if (extract(inst, 11, 11)) {
                     // SET FLAGS
                 }
@@ -155,10 +157,10 @@ void run(State* s) {
             uint32_t rd = extract(inst, 16, 19);
             uint32_t shifterOperand = addressingMode(s, inst);
 
-            if (conditionPassed(inst, cond)) {
+            if (conditionPassed(s, cond)) {
                 s->gprs[rd] = s->gprs[rn] + shifterOperand;
                 if (extract(inst, 11, 11) && rd == 15) {   // if S bit is set, update cr
-                    s->cr = s->SPSR;    // PLACEHOLDER
+                    //s->cr = s->SPSR;    // PLACEHOLDER
                 } else if (extract(inst, 11, 11)) {
                     // SET FLAGS
                 }
@@ -176,17 +178,17 @@ void run(State* s) {
             uint32_t rd = extract(inst, 16, 19);
             uint32_t shifterOperand = addressingMode(s, inst);
 
-            if (conditionPassed(inst, cond)) {
+            if (conditionPassed(s, cond)) {
                 s->gprs[rd] = s->gprs[rn] - shifterOperand;
                 if (extract(inst, 11, 11) && rd == 15) {
-                    s->cr = s->SPSR;    // PLACEHOLDER
+                    //s->cr = s->SPSR;    // PLACEHOLDER
                 } else if (extract(inst, 11, 11)) {
                     // SET FLAGS
                 }
             }
 
         } else if (!two7to26 && two4to21 == 3) {    // rsblt
-            if(conditionPassed(s,cond)){
+            if (conditionPassed(s,cond)) {
                 uint32_t rn = extract(inst,12,15);
                 uint32_t rd = extract(inst,16,19);
                 uint32_t shifter = extract(inst,20,31);
@@ -201,12 +203,12 @@ void run(State* s) {
                 printf("%c",read8(s->mem,s->gprs[1]));
                 s->pc += 4;
             }
-        } else if (two7to25 == 4) {//stmfd and ldmfd
+        } else if (two7to25 == 4) { //stmfd and ldmfd
 
-        } else if (two7to25 == 5) {//branches
+        } else if (two7to25 == 5) { //branches
             uint32_t L = extract(inst,7,7);
             if (conditionPassed(s, cond)) {
-                if (L)
+                if (L) {
                     s->lr = s->pc + 4;
                 }
                 uint32_t tempextend = extract(inst,8,31);
@@ -214,17 +216,18 @@ void run(State* s) {
                 int32_t extend = (int32_t) tempextend >> 8;
                 extend = extend << 2;
                 s->pc = s->pc + extend;
+                continue;
             }
-        } else if (two7to26 == 1) {//ldr and str
-            if(extract(inst,11,11)){//ldr and ldrb
-                if(!extract(inst,10,10)){//ldr
+        } else if (two7to26 == 1) { // ldr and str
+            if(extract(inst,11,11)){    // ldr and ldrb
+                if(!extract(inst,10,10)){   // ldr
                     
+                } else {    //ldrb
                 }
-                else{//ldrb
-                }
-            }
-            else{
+            } else {
             }
         }
+        
+        s->pc += 4;
     }
 }
