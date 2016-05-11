@@ -254,10 +254,16 @@ void run(State* s) {
 
             if (conditionPassed(s, cond)) {
                 s->gprs[rd] = s->gprs[rn] - shifterOperand;
+                uint64_t carry = s->gprs[rn] - shifterOperand;
                 if (extract(inst, 11, 11) && rd == 15) {
                     //s->cr = s->SPSR;    // PLACEHOLDER
                 } else if (extract(inst, 11, 11)) {
-                    // SET FLAGS
+                    s->cr[0] = checkSign(s->gprs[rd]);
+                    s->cr[1] = s->gprs[rd] == 0;
+                    s->cr[2] = carry > 0xFFFFFFFF;
+                    s->cr[3] = (checkSign(s->[rn]) == 0 && checkSign(shifterOperand) == 1
+                        && checkSign(s->gprs[rd]) == 1) || (checkSign(s->[rn]) == 1
+                        && checkSign(shifterOperand) == 0 && checkSign(s->gprs[rd]) == 0);
                 }
             }
 
