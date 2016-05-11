@@ -338,4 +338,5 @@ void run(State* s) {
 				}
 			}
 		}
+		s->pc += 4;
 }
