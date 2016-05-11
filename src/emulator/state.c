@@ -107,8 +107,9 @@ void run(State* s) {
 
             if (conditionPassed(s, cond)) {
                 s->gprs[rd] = s->gprs[rm] * s->gprs[rs];
-                if (extract(inst, 11, 11)) {
-                    // SET FLAGS
+                if (extract(inst, 11, 11)) {    // set flags
+                    s->cr = ((s->gprs[rd] >> 30) & 0x1) ? s->cr | 0x80000000: s->cr & 0x7FFFFFFF;
+
                 }
             }
 
