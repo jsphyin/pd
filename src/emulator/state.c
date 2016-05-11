@@ -63,6 +63,45 @@ uint32_t addressingMode(State* s, uint32_t inst) {
     return 0;
 }
 
+uint32_t memAddress(State* s, uint32_t inst){
+    uint32_t addtype = extract(inst,4,8);
+    uint32_t typebit = extract(inst,10,10);
+    uint32_t ubit = extract(inst,8,8);
+    uint32_t rn = extract(inst,12,15);
+    uint32_t offset = extract(inst,20,31);
+    uint32_t cond = extract(inst, 0, 3);
+    uint32_t result = 0;
+    if(addtype == 5 && !typebit){//immediate offset
+        if(ubit){
+            result = s->gprs[rn] + offset;
+        } else{
+            result = s->gprs[rn] - offset;
+        }
+    }
+    else if (addtype == 4 && !typebit){//immediate post-indexed
+        result = s->gprs[rn];
+        if(conditionPassed(s,cond)){
+            if(ubit)
+                s->gprs[rn] = s->gprs[rn] + offset;
+            else
+                s->gprs[rn] = s->gprs[rn] - offset;
+        }
+    }
+    else if (addtype == 5 && typebit){//immediate pre-indexed
+        if(ubit)
+            result = s->gprs[rn] + offset;
+        else
+            result = s->gprs[rn] - offset;
+        if(conditionPassed(s,cond))
+            s->gprs[rn] = result;
+    }
+    return result;
+}
+
+uint32_t rotate(uint32_t value, int shift){
+	return (value >> shift) | (value << (32 - shift));
+}
+
 void run(State* s) {
     int run = 1;
     while (run) {
@@ -108,7 +147,7 @@ void run(State* s) {
             if (conditionPassed(s, cond)) {
                 s->gprs[rd] = s->gprs[rm] * s->gprs[rs];
                 if (extract(inst, 11, 11)) {    // set flags
-                    s->cr = ((s->gprs[rd] >> 30) & 0x1) ? s->cr | 0x80000000: s->cr & 0x7FFFFFFF;
+                    //s->cr = ((s->gprs[rd] >> 30) & 0x1) ? s->cr | 0x80000000: s->cr & 0x7FFFFFFF;
 
                 }
             }
@@ -220,9 +259,28 @@ void run(State* s) {
                 continue;
             }
         } else if (two7to26 == 1) { // ldr and str
+            uint32_t address = memAddress(s,inst);
+            uint32_t rd = extract(inst,16,19);
             if(extract(inst,11,11)){    // ldr and ldrb
                 if(!extract(inst,10,10)){   // ldr
-                    
+                   uint32_t rotatebit = extract(address,30,31);
+                   uint32_t value = 0;
+                   switch(rotatebit){
+                        case 0:
+                            value = read32(s->mem,address);
+                            break;
+                        case 1:
+                            value = rotate(read32(s->mem,address),8);
+                            break;
+                        case 2:
+                            value = rotate(read32(s->mem,address),16);
+                            break;
+                        case 3:
+                            value = rotate(read32(s->mem,address),24);
+                            break;
+
+                   }
+                   s->gprs[rd] = value;
                 } else {    //ldrb
                 }
             } else {
