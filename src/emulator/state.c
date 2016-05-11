@@ -54,7 +54,7 @@ uint32_t conditionPassed(State* s, uint32_t cond) {
     }
 }
 
-uint32_t addressingMode(State* s, uint32_t inst) {
+uint32_t addressingMode(State* s, uint32_t inst, uint32_t* shift_c_out) {
     uint32_t immAd = extract(inst, 4, 6);
     if (immAd == 1) {
        // uint32_t immed8 = extract(inst, 24, 31);
@@ -102,6 +102,14 @@ uint32_t rotate(uint32_t value, int shift){
 	return (value >> shift) | (value << (32 - shift));
 }
 
+uint32_t checkSign(uint32_t value) {
+    return ((value >> 31) & 0x1);
+}
+
+uint32_t checkOverflow() {
+    return 0;
+}
+
 void run(State* s) {
     int run = 1;
     while (run) {
@@ -131,12 +139,18 @@ void run(State* s) {
 
         } else if (two7to21 == 4 && sevto4 == 9) {  // umull
             uint32_t rdHi = extract(inst, 12, 15);
-            //uint32_t rdLo = extract(inst, 16, 19);
+            uint32_t rdLo = extract(inst, 16, 19);
             uint32_t rs = extract(inst, 20, 23);
             uint32_t rm = extract(inst, 28, 31);
 
             if (conditionPassed(s, cond)) {
-                s->gprs[rdHi] = (s->gprs[rm] * s->gprs[rs]);
+                s->gprs[rdHi] = ((s->gprs[rm] * s->gprs[rs]) >> 32) & 0xFFFFFFFF;
+                s->gprs[rdLo] = (s->gprs[rm] * s->gprs[rs]) & 0xFFFFFFFF;
+                if (extract(inst, 11, 11)) {
+                    s->cr[0] = (s->gprs[rdHi] >> 31) & 0x1;
+                    s->cr[1] = (s->gprs[rdHi] == 0 && s->gprs[rdLo] == 0)
+                    // other two flags are unaffected
+                }
             }
 
         } else if (two7to21 == 0 && sevto4 == 9) {  // mul
@@ -147,8 +161,9 @@ void run(State* s) {
             if (conditionPassed(s, cond)) {
                 s->gprs[rd] = s->gprs[rm] * s->gprs[rs];
                 if (extract(inst, 11, 11)) {    // set flags
-                    //s->cr = ((s->gprs[rd] >> 30) & 0x1) ? s->cr | 0x80000000: s->cr & 0x7FFFFFFF;
-
+                    s->cr[0] = checkSign(s->gprs[rd]);
+                    s->cr[1] = s->gprs[rd] == 0;
+                    // other two flags are unaffected
                 }
             }
 
@@ -158,12 +173,18 @@ void run(State* s) {
                 return;
             }
 
-            //uint32_t shifterOperand = addressingMode(s, inst);
-            //uint32_t rn = extract(inst, 12, 15);
+            uint32_t shifterOperand = addressMode(s, inst, shift_c_out);
+            uint32_t rn = extract(inst, 12, 15);
 
-            if (conditionPassed(s, cond)) {
-                //uint32_t alu_out = s->gprs[rn] - shifterOperand;
-                // SET FLAGS
+            if (conditionPassed(s, cond)) { // set flags
+                uint64_t aluOut = s->gprs[rn] - shifterOperand;
+                s->cr[0] = checkSign(aluOut);
+                s->cr[1] = aluOut == 0
+                s->cr[2] = aluOut > 0xFFFFFFFF;
+                // check overflow
+                s->cr[3] = (checkSign(s->[rn]) == 0 && checkSign(shifterOperand) == 1
+                        && checkSign(aluOut) == 1) || (checkSign(s->[rn]) == 1
+                        && checkSign(shifterOperand) == 0 && checkSign(aluOut) == 0);
             }
 
         } else if (!two7to26 && two4to21 == 13) {   // mov and other forms
@@ -175,14 +196,18 @@ void run(State* s) {
             }
 
             uint32_t rd = extract(inst, 16, 19);
-            uint32_t shifterOperand = addressingMode(s, inst);
+            uint32_t *shift_c_out;
+            uint32_t shifterOperand = addressingMode(s, inst, shift_c_out);
 
             if (conditionPassed(s, cond)) {
                 s->gprs[rd] = shifterOperand;
                 if (extract(inst, 11, 11) && rd == 15) {   // movs
                     //s->cr = s->SPSR;    // PLACEHOLDER
-                } else if (extract(inst, 11, 11)) {
-                    // SET FLAGS
+                } else if (extract(inst, 11, 11)) { // set flags
+                    s->cr[0] = checkSign(s->gprs[rd]);
+                    s->cr[1] = s->gprs[rd] == 0;
+                    s->cr[2] = &shift_c_out;
+                    // overflow flag unaffected
                 }
             }
         } else if (!two7to26 && two4to21 == 4) {    // add 
@@ -195,14 +220,22 @@ void run(State* s) {
 
             uint32_t rn = extract(inst, 12, 15);
             uint32_t rd = extract(inst, 16, 19);
-            uint32_t shifterOperand = addressingMode(s, inst);
+            uint32_t *shift_c_out;
+            uint32_t shifterOperand = aaddressingMode(s, inst, shift_c_out);
 
             if (conditionPassed(s, cond)) {
                 s->gprs[rd] = s->gprs[rn] + shifterOperand;
+                uint32_t carry = s->gprs[rn] + shifterOperand;
                 if (extract(inst, 11, 11) && rd == 15) {   // if S bit is set, update cr
                     //s->cr = s->SPSR;    // PLACEHOLDER
-                } else if (extract(inst, 11, 11)) {
-                    // SET FLAGS
+                } else if (extract(inst, 11, 11)) { // set flags
+                    s->cr[0] = checkSign(s->gprs[rd]);
+                    s->cr[1] = s->gprs[rd] == 0;
+                    s->cr[2] = carry > 0xFFFFFFFF;
+                    // check overflow
+                    s->cr[3] = checkSign(s->gprs[rn]) == 0 && checkSign(shifterOperand) == 0
+                            && checkSign(s->gprs[rd] == 1) || (checkSign(s->gprs[rn]) == 1
+                            && checkSign(shifterOperand) && checkSign(s->gprs[rd]) == 0);
                 }
             }
 
@@ -216,7 +249,8 @@ void run(State* s) {
 
             uint32_t rn = extract(inst, 12, 15);
             uint32_t rd = extract(inst, 16, 19);
-            uint32_t shifterOperand = addressingMode(s, inst);
+            uint32_t *shift_c_out;
+            uint32_t shifterOperand = addressMode(s, inst, shift_c_out);
 
             if (conditionPassed(s, cond)) {
                 s->gprs[rd] = s->gprs[rn] - shifterOperand;
@@ -234,15 +268,16 @@ void run(State* s) {
                 uint32_t shifter = extract(inst,20,31);
                 s->gprs[rd] = shifter - s->gprs[rn];
             }
+
         } else if (two7to24 == 15) {//swi
             int sctype = s->gprs[7];
             if (sctype == 1) {  // exit
                 run = 0;
-            }
-            else if (sctype == 4) { // print
+            } else if (sctype == 4) { // print
                 printf("%c",read8(s->mem,s->gprs[1]));
                 s->pc += 4;
             }
+
         } else if (two7to25 == 4) { //stmfd and ldmfd
 
         } else if (two7to25 == 5) { //branches
@@ -258,6 +293,7 @@ void run(State* s) {
                 s->pc = s->pc + extend;
                 continue;
             }
+
         } else if (two7to26 == 1) { // ldr and str
             uint32_t address = memAddress(s,inst);
             uint32_t rd = extract(inst,16,19);
