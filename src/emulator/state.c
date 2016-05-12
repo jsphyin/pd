@@ -144,11 +144,11 @@ void run(State* s) {
             uint32_t rm = extract(inst, 28, 31);
 
             if (conditionPassed(s, cond)) {
-                s->gprs[rdHi] = ((s->gprs[rm] * s->gprs[rs]) >> 32) & 0xFFFFFFFF;
+                s->gprs[rdHi] = (((uint64_t) (s->gprs[rm] * s->gprs[rs])) >> 32) & 0xFFFFFFFF;
                 s->gprs[rdLo] = (s->gprs[rm] * s->gprs[rs]) & 0xFFFFFFFF;
                 if (extract(inst, 11, 11)) {
                     s->cr[0] = (s->gprs[rdHi] >> 31) & 0x1;
-                    s->cr[1] = (s->gprs[rdHi] == 0 && s->gprs[rdLo] == 0)
+                    s->cr[1] = (s->gprs[rdHi] == 0 && s->gprs[rdLo] == 0);
                     // other two flags are unaffected
                 }
             }
@@ -173,17 +173,18 @@ void run(State* s) {
                 return;
             }
 
-            uint32_t shifterOperand = addressMode(s, inst, shift_c_out);
+            uint32_t *shift_c_out = 0;
+            uint32_t shifterOperand = addressingMode(s, inst, shift_c_out);
             uint32_t rn = extract(inst, 12, 15);
 
             if (conditionPassed(s, cond)) { // set flags
                 uint64_t aluOut = s->gprs[rn] - shifterOperand;
                 s->cr[0] = checkSign(aluOut);
-                s->cr[1] = aluOut == 0
+                s->cr[1] = aluOut == 0;
                 s->cr[2] = aluOut > 0xFFFFFFFF;
                 // check overflow
-                s->cr[3] = (checkSign(s->[rn]) == 0 && checkSign(shifterOperand) == 1
-                        && checkSign(aluOut) == 1) || (checkSign(s->[rn]) == 1
+                s->cr[3] = (checkSign(s->gprs[rn]) == 0 && checkSign(shifterOperand) == 1
+                        && checkSign(aluOut) == 1) || (checkSign(s->gprs[rn]) == 1
                         && checkSign(shifterOperand) == 0 && checkSign(aluOut) == 0);
             }
 
@@ -196,7 +197,7 @@ void run(State* s) {
             }
 
             uint32_t rd = extract(inst, 16, 19);
-            uint32_t *shift_c_out;
+            uint32_t *shift_c_out = 0;
             uint32_t shifterOperand = addressingMode(s, inst, shift_c_out);
 
             if (conditionPassed(s, cond)) {
@@ -206,7 +207,7 @@ void run(State* s) {
                 } else if (extract(inst, 11, 11)) { // set flags
                     s->cr[0] = checkSign(s->gprs[rd]);
                     s->cr[1] = s->gprs[rd] == 0;
-                    s->cr[2] = &shift_c_out;
+                    s->cr[2] = (uint32_t) (*shift_c_out);
                     // overflow flag unaffected
                 }
             }
@@ -220,8 +221,8 @@ void run(State* s) {
 
             uint32_t rn = extract(inst, 12, 15);
             uint32_t rd = extract(inst, 16, 19);
-            uint32_t *shift_c_out;
-            uint32_t shifterOperand = aaddressingMode(s, inst, shift_c_out);
+            uint32_t *shift_c_out = 0;
+            uint32_t shifterOperand = addressingMode(s, inst, shift_c_out);
 
             if (conditionPassed(s, cond)) {
                 s->gprs[rd] = s->gprs[rn] + shifterOperand;
@@ -233,8 +234,8 @@ void run(State* s) {
                     s->cr[1] = s->gprs[rd] == 0;
                     s->cr[2] = carry > 0xFFFFFFFF;
                     // check overflow
-                    s->cr[3] = checkSign(s->gprs[rn]) == 0 && checkSign(shifterOperand) == 0
-                            && checkSign(s->gprs[rd] == 1) || (checkSign(s->gprs[rn]) == 1
+                    s->cr[3] = (checkSign(s->gprs[rn]) == 0 && checkSign(shifterOperand) == 0
+                            && checkSign(s->gprs[rd] == 1)) || (checkSign(s->gprs[rn]) == 1
                             && checkSign(shifterOperand) && checkSign(s->gprs[rd]) == 0);
                 }
             }
@@ -249,8 +250,8 @@ void run(State* s) {
 
             uint32_t rn = extract(inst, 12, 15);
             uint32_t rd = extract(inst, 16, 19);
-            uint32_t *shift_c_out;
-            uint32_t shifterOperand = addressMode(s, inst, shift_c_out);
+            uint32_t *shift_c_out = 0;
+            uint32_t shifterOperand = addressingMode(s, inst, shift_c_out);
 
             if (conditionPassed(s, cond)) {
                 s->gprs[rd] = s->gprs[rn] - shifterOperand;
@@ -261,8 +262,8 @@ void run(State* s) {
                     s->cr[0] = checkSign(s->gprs[rd]);
                     s->cr[1] = s->gprs[rd] == 0;
                     s->cr[2] = carry > 0xFFFFFFFF;
-                    s->cr[3] = (checkSign(s->[rn]) == 0 && checkSign(shifterOperand) == 1
-                        && checkSign(s->gprs[rd]) == 1) || (checkSign(s->[rn]) == 1
+                    s->cr[3] = (checkSign(s->gprs[rn]) == 0 && checkSign(shifterOperand) == 1
+                        && checkSign(s->gprs[rd]) == 1) || (checkSign(s->gprs[rn]) == 1
                         && checkSign(shifterOperand) == 0 && checkSign(s->gprs[rd]) == 0);
                 }
             }
@@ -339,4 +340,5 @@ void run(State* s) {
 			}
 		}
 		s->pc += 4;
+    }
 }
