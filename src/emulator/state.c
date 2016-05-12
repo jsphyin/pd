@@ -127,10 +127,10 @@ void run(State* s) {
         uint32_t two4to20 = extract(inst, 7, 11);
         uint32_t two7to25 = extract(inst, 4, 6);
         uint32_t two7to24 = extract(inst, 4, 7);
-        if (push1 == 119386 && push2 == 0) {    // push (stmdb)
+        /*if (push1 == 119386 && push2 == 0) {    // push (stmdb)
         } else if (pop1 == 59581 && pop2 == 0) {    // pop (ldmia)
 
-        } else if (two7to20 == 18 && sevto4 == 1) { // bx
+        } else*/ if (two7to20 == 18 && sevto4 == 1) { // bx
             uint32_t rm = extract(inst, 28, 31);
             if (conditionPassed(s, cond)) {
                 s->pc = (s->gprs[rm] & 0xFFFFFFFE);
