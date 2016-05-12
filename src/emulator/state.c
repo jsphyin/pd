@@ -15,6 +15,10 @@ State* newState(Memory* memory) {
     return s;
 }
 
+uint32_t rotate(uint32_t value, int shift){
+    return (value >> shift) | (value << (32 - shift));
+}
+
 uint32_t extract(uint32_t total,int start,int end) {
     uint32_t temp = total << start;
     //uint32_t cutoff = (uint32_t) temp;
@@ -56,11 +60,32 @@ uint32_t conditionPassed(State* s, uint32_t cond) {
 
 uint32_t addressingMode(State* s, uint32_t inst, uint32_t* shift_c_out) {
     uint32_t immAd = extract(inst, 4, 6);
-    if (immAd == 1) {
-        // uint32_t immed8 = extract(inst, 24, 31);
-        //uint32_t rotate_imm = extract(inst, 20, 23);
+    uint32_t immAd2 = extract(inst, 25, 27);
+    uint32_t shifter_operand = 0;
+    if(immAd == 0 && immAd2 == 0){
+        uint32_t rm = extract(inst, 28, 31);
+        uint32_t shift_imm = extract(inst, 20, 24);
+        if(extract(inst, 20, 24) == 0){
+            shifter_operand = s->gprs[rm];
+            *shift_c_out = s->cr[2];
+        }
+        else{
+            shifter_operand = s->gprs[rm] << shift_imm;
+            *shift_c_out = extract(s->gprs[rm],shift_imm - 1 ,shift_imm -1);
+        }
     }
-    return 0;
+    else if (immAd == 1) {
+        uint32_t immed8 = extract(inst, 24, 31);
+        uint32_t rotate_imm = extract(inst, 20, 23);
+        shifter_operand = rotate(immed8, rotate_imm*2);
+        if(rotate_imm == 0){
+            *shift_c_out = s->cr[2];
+        }
+        else{
+            *shift_c_out = extract(shifter_operand, 0, 0);
+        }
+    }
+    return shifter_operand;
 }
 
 uint32_t memAddress(State* s, uint32_t inst){
@@ -98,10 +123,6 @@ uint32_t memAddress(State* s, uint32_t inst){
     return result;
 }
 
-uint32_t rotate(uint32_t value, int shift){
-    return (value >> shift) | (value << (32 - shift));
-}
-
 uint32_t checkSign(uint32_t value) {
     return ((value >> 31) & 0x1);
 }
@@ -116,9 +137,9 @@ void run(State* s) {
         uint32_t inst = read32(s->mem, s->pc); 
         uint32_t cond = extract(inst, 0, 3);
         /*uint32_t push1 = extract(inst, 0, 16);
-        uint32_t push2 = extract(inst, 18, 23);
-        uint32_t pop1 = extract(inst, 0, 15);
-        uint32_t pop2 = extract(inst, 17, 23);*/
+          uint32_t push2 = extract(inst, 18, 23);
+          uint32_t pop1 = extract(inst, 0, 15);
+          uint32_t pop2 = extract(inst, 17, 23);*/
         uint32_t two7to26 = extract(inst, 4, 5);
         uint32_t two4to21 = extract(inst, 7, 10);
         uint32_t two7to21 = extract(inst, 4, 10);
@@ -308,7 +329,7 @@ void run(State* s) {
                               address+=4;
                           }
                       }
-                      
+
                   }
 
               }
