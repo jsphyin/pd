@@ -12,32 +12,25 @@ RESULTS=$(patsubst %.fun,%.result,$(TESTS))
 
 CC = arm-linux-gnueabi-as
 
-UTILS = compiler emulator
-
 .SECONDARY:
 
 .PROCIOUS : %.o %.S %.out
 
-CFLAGS=-MD -g -std=gnu99 -O0 -Werror -Wall
+CFLAGS=-g -std=gnu99 -O0 -Werror -Wall
 OFILES=$(subst .c,.o,$(CFILES))
 
-all : ${UTILS}
+p5 : $(OFILES) Makefile
+	gcc $(CFLAGS) -o p5 $(OFILES)
 
-compiler_CFILES=$(wildcard src/compiler/*.c)
-emulator_CFILES=$(wildcard src/emulator/*.c)
+%.o : %.c Makefile
+	gcc $(CFLAGS) -MD -c $*.c
 
-compiler : Makefile ${compiler_CFILES} 
-	gcc $(CFLAGS) -o $@ ${compiler_CFILES}
-	
-emulator : Makefile ${emulator_CFILES}
-	gcc $(CFLAGS) -o $@ ${emulator_CFILES}
-	
-%.o : %.S all Makefile
+%.o : %.S Makefile
 	($(CC) -o $*.o $*.S) || touch $@
 
-%.S : compiler %.fun
+%.S : %.fun p5
 	@echo "========== $* =========="
-	(./compiler < $*.fun > $*.S) || touch $@
+	(./p5 < $*.fun > $*.S) || touch $@
 
 progs : $(PROGS)
 
@@ -45,35 +38,34 @@ progs : $(PROGS)
 #	($(AS) -o $*.o $*.asm) || touch $@
 
 $(PROGS) : % : %.o
-	(arm-linux-gnueabi-ld -o $@ $*.o) || touch $@
+	(arm-linux-gnueabi-ld -o $@ $*.o ppc.o) || touch $@
 
 outs : $(OUTS)
 
-$(OUTS) : %.out : emulator Makefile %
-	(./emulator $* > $*.out) || touch $@
+$(OUTS) : %.out : %
+	(qemu-arm $* > $*.out) || touch $@
 
 diffs : $(DIFFS)
 
 %.ok:
 	touch $@
 
-$(DIFFS) : %.diff : all Makefile %.out %.ok
+$(DIFFS) : %.diff : Makefile %.out %.ok
 	@(((diff -b $*.ok $*.out > /dev/null 2>&1) && (echo "===> $* ... pass")) || (echo "===> $* ... fail" ; echo "----- test -----"; cat $*.fun; echo "----- expected ------"; cat $*.ok ; echo "----- found -----"; cat $*.out)) > $*.diff 2>&1
 
-$(RESULTS) : %.result : all Makefile %.diff
+$(RESULTS) : %.result : Makefile %.diff
 	@cat $*.diff
 
-test : all Makefile $(DIFFS)
+test : Makefile $(DIFFS)
 	@cat $(DIFFS)
 
 clean :
 	rm -f $(PROGS)
-	rm -f $(UTILS)
 	rm -f *.S
 	rm -f *.out
-	rm -f *.d src/emulator/*.d src/compiler/*.d
-	rm -f *.o src/emulator/*.o src/compiler/*.o
-	rm -f emulator compiler
+	rm -f *.d
+	rm -f *.o
+	rm -f p5
 	rm -f *.diff
 
 -include *.d
