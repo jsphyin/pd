@@ -5,7 +5,7 @@
 #include "memory.h"
 #include "loader.h"
 #include "state.h"
-/*
+
 int main(int argc, const char **argv) {
     if (argc != 2) {
         fprintf(stderr,"usage: %s <executable>\n",argv[0]);
@@ -21,7 +21,7 @@ int main(int argc, const char **argv) {
 
     Memory* memory = newMemory();
     uint32_t e = load(fd,memory);
-    uint32_t pc = read32(memory,e)
+    uint32_t pc = read32(memory,e);
     
     State* s = newState(memory);
     s->pc = pc;
@@ -29,7 +29,8 @@ int main(int argc, const char **argv) {
     s->lr = 0;
     run(s);
     return 0;
-}*/
+}
+/*
 int main() {
     return 0;
-}
+}*/
