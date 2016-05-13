@@ -1,0 +1,46 @@
+Contribution of each team member:
+Benjamin Chen
+- Figured out how to change Makefile
+- Wrote how to run the project
+- Setup emulator to test the compiler
+- Worked on the compiler
+- Worked on the emulator
+
+Joseph Yin
+- Figured out miscellanous ARM things
+(like printing and global variables)
+- Wrote the report
+- Setup the git repo for the project
+- Worked on the compiler
+- Worked on the emulator
+
+
+What did you propose to do?
+Create a fun2ARM compiler with an emulator that goes along with it
+
+what did you actually do?
+We ended up creating a fun2ARM compiler and emulator. But we were
+unable to sucessfully link the two due to complications with 
+loading from ELF files within the emulator. The emulator code is 
+still there, but due to broken loading from memory, is not run.
+
+What was difficult?
+It was difficult learning the various details of a foreign 
+architecture. For ARM, we did not have the knowledge about the
+architecture that we had from class. This led to complications
+with understanding how the different registers were set up in ARM
+as well as other details like accessing memory through variables
+or the different addressing modes in ARM. Along with that, it was
+difficult to make the various helper functions that were given in 
+p5 to help with the compiler such as the given functions that printed.
+In addition, it was difficult to figure out how to get the emulator to
+work with the compiler given that the helper functions in p6 were able to 
+load from memory. Due to inexperience with working with ELF as well 
+as time crunch due to impending finals, we decided to just do a fun2ARM
+compiler.
+
+What did you learn?
+We learned about the ARM architecture such as the different addressing 
+modes utilized within the architecture. In addition, we learned about 
+other details like the cond field within each instruction which makes it
+possible for all instructions to be conditionally ran.
