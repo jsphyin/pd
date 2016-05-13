@@ -4,7 +4,7 @@ OUTS=$(patsubst %.fun,%.out,$(TESTS))
 DIFFS=$(patsubst %.fun,%.diff,$(TESTS))
 RESULTS=$(patsubst %.fun,%.result,$(TESTS))
 
-#CFILES=$(sort $(wildcard *.c))
+CFILES=$(sort $(wildcard *.c))
 
 #PPC=/u/gheith/public/ppc64-linux/bin
 #AS=${PPC}/as
@@ -19,8 +19,8 @@ CC = arm-linux-gnueabi-as
 CFLAGS=-g -std=gnu99 -O0 -Werror -Wall
 OFILES=$(subst .c,.o,$(CFILES))
 
-p5 : $(OFILES) Makefile
-	gcc $(CFLAGS) -o p5 $(OFILES)
+compiler : $(OFILES) Makefile
+	gcc $(CFLAGS) -o compiler $(OFILES)
 
 %.o : %.c Makefile
 	gcc $(CFLAGS) -MD -c $*.c
@@ -28,9 +28,9 @@ p5 : $(OFILES) Makefile
 %.o : %.S Makefile
 	($(CC) -o $*.o $*.S) || touch $@
 
-%.S : %.fun p5
+%.S : %.fun compiler
 	@echo "========== $* =========="
-	(./p5 < $*.fun > $*.S) || touch $@
+	(./compiler < $*.fun > $*.S) || touch $@
 
 progs : $(PROGS)
 
@@ -38,12 +38,12 @@ progs : $(PROGS)
 #	($(AS) -o $*.o $*.asm) || touch $@
 
 $(PROGS) : % : %.o
-	(arm-linux-gnueabi-ld -o $@ $*.o ppc.o) || touch $@
+	(arm-linux-gnueabi-ld -o $@ $*.o) || touch $@
 
 outs : $(OUTS)
 
 $(OUTS) : %.out : %
-	(qemu-arm $* > $*.out) || touch $@
+	(qemu-arm-static $* > $*.out) || touch $@
 
 diffs : $(DIFFS)
 
