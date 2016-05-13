@@ -1,0 +1,27 @@
+Please include clear and simple instructions for running your project.
+
+The makefile should work properly for executing the program with all of the
+tests as long as binutils-arm-linux-gnueabi and qemu arm are installed
+using the commands:
+
+    sudo apt-get install binutils-arm-linux-gnuabi
+    sudo apt-get install qemu-system
+
+These tools are need to assemble and link the ARM files properly and then run
+them using the emulator (qemu-arm-static). The files are assembled using the
+command arm-linux-gnueabi-as and arm-linux-gnueabi-ld. 
+
+To run the program use the command "make clean test". Otherwise the Makefile
+works the same way as they were given to us in our previous projects since it is
+just a modified version of p5's Makefile.
+
+-------------------------------------------------------------------------------
+
+Explain why your supplied tests illustrate that your project works
+
+Our supplied tests illustrate that our project works correctly because we
+essentially recycled the tests from p5. They use print statements to verify that
+the compiled version prints and runs correctly. They basically test boolean
+expression, arithmetic expressions, recursion, while loops, if statements, and
+the other various functionalities of fun. If the ARM file runs correctly, then
+the corresponding output should be the same as what is in the .ok file.
