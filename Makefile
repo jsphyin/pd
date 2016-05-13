@@ -65,7 +65,7 @@ clean :
 	rm -f *.out
 	rm -f *.d
 	rm -f *.o
-	rm -f p5
+	rm -f compiler
 	rm -f *.diff
 
 -include *.d
